@@ -1,0 +1,3 @@
+// the configured options and settings for Yage
+#define YAGE_VERSION_MAJOR @yage_VERSION_MAJOR@
+#define YAGE_VERSION_MINOR @yage_VERSION_MINOR@
