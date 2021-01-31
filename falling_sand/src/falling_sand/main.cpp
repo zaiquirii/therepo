@@ -2,7 +2,7 @@
 #include <yage/yage.h>
 #include <yaml-cpp/yaml.h>
 #include <falling_sand/sim/Sandbox.hpp>
-#include <falling_sand/sim/squares.hpp>
+#include <falling_sand/sim/particles.hpp>
 
 using namespace falling_sand;
 
@@ -30,14 +30,10 @@ int main(int argc, char *args[]) {
         sim.tick();
 
         int size = config.width * config.height;
-        Square *currentState = sim.currentState();
-        int count = 0;
+        Particle *currentState = sim.currentState();
         for (int i = 0; i < size; i++) {
-            Square s = currentState[i];
+            Particle s = currentState[i];
             pixels[i] = getSquareColor(s);
-            if (s == Square::SAND) {
-                count++;
-            }
         }
 
         SDL_UpdateTexture(texture, nullptr, pixels, config.width * sizeof(unsigned int));
@@ -49,7 +45,7 @@ int main(int argc, char *args[]) {
                 quit = true;
             }
         }
-//        SDL_Delay(100);
+//        SDL_Delay(5);
     }
 
     SDL_DestroyTexture(texture);

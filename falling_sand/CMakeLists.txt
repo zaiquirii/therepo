@@ -15,7 +15,11 @@ add_executable(falling_sand
         src/falling_sand/main.cpp
         src/falling_sand/sim/Sandbox.hpp
         src/falling_sand/sim/Sandbox.cpp
-        src/falling_sand/sim/squares.hpp src/falling_sand/sim/squares.cpp src/falling_sand/sim/SandboxConfig.hpp)
+        src/falling_sand/sim/particles.hpp
+        src/falling_sand/sim/particles.cpp
+        src/falling_sand/sim/SandboxConfig.hpp
+        src/falling_sand/sim/ParticleSystem.cpp
+        src/falling_sand/sim/ParticleSystem.hpp)
 target_include_directories(falling_sand
         PUBLIC
         src
