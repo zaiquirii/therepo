@@ -1,13 +1,16 @@
 //Using SDL and standard IO
 #include <SDL.h>
 #include <cstdio>
+#include <filesystem>
 #include <iostream>
+#include <yaml-cpp/yaml.h>
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+#include "window/WindowConfig.h"
 
 int main(int argc, char *args[]) {
+    std::cout << "PATH: " << std::filesystem::current_path() << std::endl;
+    auto windowConfig = YAML::LoadFile("../assets/config/window_config.yml").as<yage::window::WindowConfig>();
+
     //The window we'll be rendering to
     SDL_Window *window = nullptr;
 
@@ -16,13 +19,12 @@ int main(int argc, char *args[]) {
 
     //Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "why no cout" << std::endl;
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     } else {
         //Create window
-        window = SDL_CreateWindow("YAGE",
+        window = SDL_CreateWindow(windowConfig.title.c_str(),
                                   SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                  SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+                                  windowConfig.width, windowConfig.height, SDL_WINDOW_SHOWN);
         if (window == nullptr) {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         } else {
