@@ -3,6 +3,8 @@
 #include <yaml-cpp/yaml.h>
 #include <falling_sand/sim/Sandbox.hpp>
 #include <falling_sand/sim/particles.hpp>
+#include <falling_sand/ui/InputSystem.hpp>
+#include <falling_sand/ui/Brush.hpp>
 
 using namespace falling_sand;
 
@@ -25,8 +27,20 @@ int main(int argc, char *args[]) {
     memset(pixels, 0, config.width * config.height * sizeof(unsigned int));
 
     bool quit = false;
+    InputSystem inputSystem;
     SDL_Event e;
+    Brush brush = {.particle = {.state = POWDER}, .size = 1};
+
     while (!quit) {
+        inputSystem.pollInput();
+        if (inputSystem.quitRequested()) {
+            quit = true;
+        }
+
+        if (inputSystem.mouseDown()) {
+            Point mousePos = inputSystem.mousePos(1280, 960, config.width, config.height);
+        }
+
         sim.tick();
 
         int size = config.width * config.height;
@@ -40,11 +54,6 @@ int main(int argc, char *args[]) {
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
 
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
         SDL_Delay(100);
     }
 
