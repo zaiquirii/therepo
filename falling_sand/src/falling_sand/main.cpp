@@ -45,7 +45,7 @@ int main(int argc, char *args[]) {
                 quit = true;
             }
         }
-//        SDL_Delay(5);
+        SDL_Delay(100);
     }
 
     SDL_DestroyTexture(texture);

@@ -11,23 +11,19 @@ ParticleSystem::ParticleSystem(int width, int height) {
     memset(inputBuffer_, 0, size * sizeof(Particle));
     memset(outputBuffer_, 0, size * sizeof(Particle));
 
-    setParticleAt(100, 149, { .type = SAND_EMITTER});
-    setParticleAt(150, 149, { .type = SAND_EMITTER});
-    setParticleAt(149, 149, { .type = SAND_EMITTER});
-    setParticleAt(148, 149, { .type = SAND_EMITTER});
-    setParticleAt(0, 149, { .type = SAND_EMITTER});
-
+    Particle wall = {.state = SOLID};
+    Particle sand = {.state = POWDER};
     for (int i = 0; i < 25; i++) {
-        setParticleAt(90 + i, 75, { .type = WALL });
-        setParticleAt(90, 75 + i, { .type = WALL });
-        setParticleAt(90+25, 75 + i, { .type = WALL });
+        setParticleAt(90 + i, 75, wall);
+        setParticleAt(90, 75 + i, wall);
+        setParticleAt(90+25, 75 + i, wall);
+
+        setParticleAt(100, 130 + i, sand);
     }
 }
 
 Particle ParticleSystem::particleAt(int x, int y) {
-    if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
-        return borderParticle;
-    }
+    assert(x >= 0 || x < this->width || y >= 0 || y < this->height);
     return inputBuffer_[this->width * (this->height - y - 1) + x];
 }
 
