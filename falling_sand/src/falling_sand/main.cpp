@@ -30,7 +30,7 @@ int main(int argc, char *args[]) {
     bool quit = false;
     InputSystem inputSystem;
     SDL_Event e;
-    Brush brush = {.particle = {.type = SAND}, .size = 3};
+    Brush brush = {.particle = SAND_CELL, .size = 10};
 
     while (!quit) {
         inputSystem.pollInput();
@@ -40,21 +40,26 @@ int main(int argc, char *args[]) {
 
         switch (inputSystem.keyPressed()) {
             case 0:
-                brush.particle = { .type = EMPTY};
+                brush.particle = EMPTY_CELL;
                 brush.type = Fill;
                 break;
             case 1:
-                brush.particle = { .type = WALL};
+                brush.particle = WALL_CELL;
                 brush.type = FillEmpty;
                 break;
             case 2:
-                brush.particle = { .type = SAND};
+                brush.particle = SAND_CELL;
                 brush.type = FillEmpty;
                 break;
             case 3:
-                brush.particle = { .type = WATER};
+                brush.particle = WATER_CELL;
                 brush.type = FillEmpty;
                 break;
+            case 4:
+                brush.particle = OIL_CELL;
+                brush.type = FillEmpty;
+                break;
+
         }
 
         if (inputSystem.mouseDown()) {

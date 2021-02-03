@@ -34,6 +34,9 @@ void InputSystem::pollInput() {
                     case SDLK_3:
                         keyPressed_ = 3;
                         break;
+                    case SDLK_4:
+                        keyPressed_ = 4;
+                        break;
                 }
                 break;
         }

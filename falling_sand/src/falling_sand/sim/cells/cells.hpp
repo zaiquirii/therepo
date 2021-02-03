@@ -5,8 +5,11 @@
 #include <falling_sand/sim/CellSystem.hpp>
 
 namespace falling_sand {
-    void updateSand(Cell cell, CellAPI api);
-    void updateWater(Cell cell, CellAPI api);
+void updateSand(Cell cell, CellAPI api);
+
+void updateWater(Cell cell, CellAPI api);
+
+void updateOil(Cell cell, CellAPI api);
 }
 
 #endif //SRC_FALLING_SAND_CELLS_HPP

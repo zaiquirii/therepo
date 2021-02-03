@@ -29,7 +29,7 @@ Cell CellSystem::cellAt(int x, int y) {
         int index = width * y + x;
         return cells_[index];
     }
-    return { .type = EMPTY};
+    return { .type = WALL};
 }
 
 void CellSystem::setCellAt(int x, int y, Cell particle) {
@@ -64,76 +64,10 @@ void CellSystem::processCell(int index) {
         case WATER:
             updateWater(cell, api);
             break;
+        case OIL:
+            updateOil(cell, api);
+            break;
     }
-//    int x = index % width;qw
-//    int y = index / width;
-
-//    Cell cell = particleAt(x, y);
-//    switch (cell.shape) {
-//        case SOLID:
-//        case EMPTY:
-//            setCellAt(x, y, cell);
-//            break;
-//        case LIQUID:
-//        case POWDER:
-//            if (y == 0) {
-//                setCellAt(x, y, {.shape = EMPTY});
-//                break;
-//            }
-//
-//            otherParticle = particleAt(x, y - 1);
-//            otherState = otherParticle.shape;
-//            int z;
-//            switch (otherState) {
-//                case POWDER:
-//                case SOLID:
-//                case LIQUID:
-//                    if (x < width - 1) {
-//                        otherParticle = particleAt(x + 1, y - 1);
-//                        if (otherParticle.shape == EMPTY) {
-//                            setCellAt(x + 1, y - 1, cell);
-//                            setCellAt(x, y, otherParticle);
-//                            break;
-//                        }
-//                    }
-//                    if (x > 0) {
-//                        otherParticle = particleAt(x - 1, y - 1);
-//                        if (otherParticle.shape == EMPTY) {
-//                            setCellAt(x - 1, y - 1, cell);
-//                            setCellAt(x, y, otherParticle);
-//                            break;
-//                        }
-//                    }
-//                    // A FEW EXTRA CHECKS TO MAKE LIQUIDS LIQUID
-//                    if (cell.shape == LIQUID) {
-//                        if (x > 0) {
-//                            otherParticle = particleAt(x - 1, y);
-//                            if (otherParticle.shape == EMPTY &&
-//                                !isParticleSet(x - 1, y)) {
-//                                setCellAt(x - 1, y, cell);
-//                                setCellAt(x, y, otherParticle);
-//                                break;
-//                            }
-//                        }
-//                        if (x + 1 < width) {
-//                            otherParticle = particleAt(x + 1, y);
-//                            if (otherParticle.shape == EMPTY &&
-//                                !isParticleSet(x + 1, y)) {
-//                                setCellAt(x + 1, y, cell);
-//                                setCellAt(x, y, otherParticle);
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    setCellAt(x, y, cell);
-//                    break;
-//                case EMPTY:
-//                    setCellAt(x, y, otherParticle);
-//                    setCellAt(x, y - 1, cell);
-//                    break;
-//            }
-//            break;
-//    }
 }
 
 CellAPI::CellAPI(CellSystem *system, int index) :

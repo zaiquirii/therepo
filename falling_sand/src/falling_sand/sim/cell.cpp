@@ -2,6 +2,10 @@
 
 namespace falling_sand {
 Cell EMPTY_CELL = {.type = EMPTY};
+Cell WALL_CELL = {.type = WALL, .isStatic = true};
+Cell SAND_CELL = {.type = SAND, .density = 52, .isSolid = true};
+Cell WATER_CELL = {.type = WATER, .density = 50, .isLiquid = true};
+Cell OIL_CELL = {.type = OIL, .density = 48, .isLiquid = true};
 
 unsigned int getSquareColor(Cell cell) {
     switch (cell.type) {
@@ -13,11 +17,8 @@ unsigned int getSquareColor(Cell cell) {
             return 0xFFFFFF00;
         case WATER:
             return 0xFF0000FF;
-
-//        case SOLID:
-//            return 0xFFfff700;
-//        case SAND_EMITTER:
-//            return 0xFFc7c600;
+        case OIL:
+            return 0x853F00;
     }
 }
 }
