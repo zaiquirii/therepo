@@ -1,10 +1,11 @@
 #include <SDL.h>
 #include <yage/yage.h>
 #include <yaml-cpp/yaml.h>
-#include <falling_sand/sim/Sandbox.hpp>
-#include <falling_sand/sim/particles.hpp>
+#include <falling_sand/sim/cell.hpp>
 #include <falling_sand/ui/InputSystem.hpp>
 #include <falling_sand/ui/Brush.hpp>
+#include <falling_sand/sim/SandboxConfig.hpp>
+#include <falling_sand/sim/CellSystem.hpp>
 
 using namespace falling_sand;
 
@@ -18,7 +19,7 @@ int main(int argc, char *args[]) {
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
     auto config = YAML::LoadFile("../assets/config/sandbox_config.yml").as<SandboxConfig>();
-    auto sim = Sandbox(config);
+    auto sim = CellSystem(config.width, config.height);
 
     SDL_Texture *texture = SDL_CreateTexture(
             renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC,
@@ -29,7 +30,7 @@ int main(int argc, char *args[]) {
     bool quit = false;
     InputSystem inputSystem;
     SDL_Event e;
-    Brush brush = {.particle = {.state = POWDER}, .size = 1};
+    Brush brush = {.particle = {.type = SAND}, .size = 3};
 
     while (!quit) {
         inputSystem.pollInput();
@@ -37,16 +38,36 @@ int main(int argc, char *args[]) {
             quit = true;
         }
 
+        switch (inputSystem.keyPressed()) {
+            case 0:
+                brush.particle = { .type = EMPTY};
+                brush.type = Fill;
+                break;
+            case 1:
+                brush.particle = { .type = WALL};
+                brush.type = FillEmpty;
+                break;
+            case 2:
+                brush.particle = { .type = SAND};
+                brush.type = FillEmpty;
+                break;
+            case 3:
+                brush.particle = { .type = WATER};
+                brush.type = FillEmpty;
+                break;
+        }
+
         if (inputSystem.mouseDown()) {
-            Point mousePos = inputSystem.mousePos(1280, 960, config.width, config.height);
+            Point mousePos = inputSystem.mousePos(1280, 960, sim.width, sim.height);
+            brush.paintAt(sim, mousePos);
         }
 
         sim.tick();
 
-        int size = config.width * config.height;
-        Particle *currentState = sim.currentState();
+        int size = sim.width * sim.height;
+        Cell *currentState = sim.buffer();
         for (int i = 0; i < size; i++) {
-            Particle s = currentState[i];
+            Cell s = currentState[i];
             pixels[i] = getSquareColor(s);
         }
 
@@ -54,7 +75,7 @@ int main(int argc, char *args[]) {
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
 
-        SDL_Delay(100);
+        SDL_Delay(5);
     }
 
     SDL_DestroyTexture(texture);

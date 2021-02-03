@@ -13,13 +13,11 @@ add_subdirectory(../yage ${PROJECT_BINARY_DIR}/build_yage)
 
 add_executable(falling_sand
         src/falling_sand/main.cpp
-        src/falling_sand/sim/Sandbox.hpp
-        src/falling_sand/sim/Sandbox.cpp
-        src/falling_sand/sim/particles.hpp
-        src/falling_sand/sim/particles.cpp
+        src/falling_sand/sim/cell.hpp
+        src/falling_sand/sim/cell.cpp
         src/falling_sand/sim/SandboxConfig.hpp
-        src/falling_sand/sim/ParticleSystem.cpp
-        src/falling_sand/sim/ParticleSystem.hpp src/falling_sand/ui/Brush.cpp src/falling_sand/ui/Brush.hpp src/falling_sand/ui/InputSystem.cpp src/falling_sand/ui/InputSystem.hpp)
+        src/falling_sand/sim/CellSystem.cpp
+        src/falling_sand/sim/CellSystem.hpp src/falling_sand/ui/Brush.cpp src/falling_sand/ui/Brush.hpp src/falling_sand/ui/InputSystem.cpp src/falling_sand/ui/InputSystem.hpp src/falling_sand/math/BitSet.cpp src/falling_sand/math/BitSet.hpp src/falling_sand/sim/cells/cells.hpp src/falling_sand/sim/cells/cells.cpp)
 target_include_directories(falling_sand
         PUBLIC
         src

@@ -1,17 +1,26 @@
 #ifndef SRC_FALLING_SAND_BRUSH_HPP
 #define SRC_FALLING_SAND_BRUSH_HPP
 
-#include <falling_sand/sim/particles.hpp>
+#include <falling_sand/sim/cell.hpp>
+#include <falling_sand/sim/CellSystem.hpp>
+#include "InputSystem.hpp"
 
 namespace falling_sand {
-enum BrushType {
+enum BrushShape {
     Square
+};
+enum  BrushType {
+    FillEmpty,
+    Fill
 };
 
 struct Brush {
-    Particle particle;
-    BrushType type = Square;
+    Cell particle;
+    BrushShape shape = Square;
+    BrushType type = FillEmpty;
     int size;
+
+    void paintAt(CellSystem &system, Point pos);
 };
 }
 

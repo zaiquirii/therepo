@@ -20,6 +20,22 @@ void InputSystem::pollInput() {
                     mouseDown_ = false;
                 }
                 break;
+            case SDL_KEYDOWN:
+                switch (event_.key.keysym.sym) {
+                    case SDLK_0:
+                        keyPressed_ = 0;
+                        break;
+                    case SDLK_1:
+                        keyPressed_ = 1;
+                        break;
+                    case SDLK_2:
+                        keyPressed_ = 2;
+                        break;
+                    case SDLK_3:
+                        keyPressed_ = 3;
+                        break;
+                }
+                break;
         }
     }
 }
