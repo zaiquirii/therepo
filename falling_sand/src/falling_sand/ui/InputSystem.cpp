@@ -49,4 +49,8 @@ Point InputSystem::mousePos(int windowWidth, int windowHeight, int simWidth, int
             .y = static_cast<int>(rawMousePos_.y / ((float) windowHeight) * simHeight)
     };
 }
+
+Point InputSystem::mousePos() {
+    return rawMousePos_;
+}
 }

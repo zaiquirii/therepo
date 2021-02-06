@@ -15,11 +15,12 @@ enum CellType : short {
 
 struct Cell {
     CellType type;
-    short density = 0;
+    short density;
     bool touchValue;
     bool isLiquid;
     bool isSolid;
     bool isStatic;
+    float velocity;
 };
 
 extern Cell EMPTY_CELL;
@@ -28,7 +29,7 @@ extern Cell WALL_CELL;
 extern Cell WATER_CELL;
 extern Cell OIL_CELL;
 
-unsigned int getSquareColor(Cell cell);
+unsigned int getCellColor(Cell cell);
 }
 
 #endif //SRC_FALLING_SAND_CELL_HPP

@@ -3,9 +3,9 @@
 #include <yaml-cpp/yaml.h>
 #include <falling_sand/sim/cell.hpp>
 #include <falling_sand/ui/InputSystem.hpp>
-#include <falling_sand/ui/Brush.hpp>
 #include <falling_sand/sim/SandboxConfig.hpp>
 #include <falling_sand/sim/CellSystem.hpp>
+#include <falling_sand/ui/Toolbox.hpp>
 
 using namespace falling_sand;
 
@@ -29,8 +29,7 @@ int main(int argc, char *args[]) {
 
     bool quit = false;
     InputSystem inputSystem;
-    SDL_Event e;
-    Brush brush = {.particle = SAND_CELL, .size = 10};
+    Toolbox toolbox;
 
     while (!quit) {
         inputSystem.pollInput();
@@ -38,33 +37,11 @@ int main(int argc, char *args[]) {
             quit = true;
         }
 
-        switch (inputSystem.keyPressed()) {
-            case 0:
-                brush.particle = EMPTY_CELL;
-                brush.type = Fill;
-                break;
-            case 1:
-                brush.particle = WALL_CELL;
-                brush.type = FillEmpty;
-                break;
-            case 2:
-                brush.particle = SAND_CELL;
-                brush.type = FillEmpty;
-                break;
-            case 3:
-                brush.particle = WATER_CELL;
-                brush.type = FillEmpty;
-                break;
-            case 4:
-                brush.particle = OIL_CELL;
-                brush.type = FillEmpty;
-                break;
-
-        }
-
-        if (inputSystem.mouseDown()) {
-            Point mousePos = inputSystem.mousePos(1280, 960, sim.width, sim.height);
-            brush.paintAt(sim, mousePos);
+        if (!toolbox.takeInput(inputSystem)) {
+            if (inputSystem.mouseDown()) {
+                Point mousePos = inputSystem.mousePos(1280, 960, sim.width, sim.height);
+                toolbox.currentBrush().paintAt(sim, mousePos);
+            }
         }
 
         sim.tick();
@@ -73,14 +50,18 @@ int main(int argc, char *args[]) {
         Cell *currentState = sim.buffer();
         for (int i = 0; i < size; i++) {
             Cell s = currentState[i];
-            pixels[i] = getSquareColor(s);
+            pixels[i] = getCellColor(s);
         }
 
         SDL_UpdateTexture(texture, nullptr, pixels, config.width * sizeof(unsigned int));
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+
+        // RENDER TOOLBOX HERE
+        toolbox.render(renderer);
+
         SDL_RenderPresent(renderer);
 
-        SDL_Delay(5);
+        SDL_Delay(16);
     }
 
     SDL_DestroyTexture(texture);

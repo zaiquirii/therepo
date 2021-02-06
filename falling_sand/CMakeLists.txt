@@ -17,7 +17,7 @@ add_executable(falling_sand
         src/falling_sand/sim/cell.cpp
         src/falling_sand/sim/SandboxConfig.hpp
         src/falling_sand/sim/CellSystem.cpp
-        src/falling_sand/sim/CellSystem.hpp src/falling_sand/ui/Brush.cpp src/falling_sand/ui/Brush.hpp src/falling_sand/ui/InputSystem.cpp src/falling_sand/ui/InputSystem.hpp src/falling_sand/math/BitSet.cpp src/falling_sand/math/BitSet.hpp src/falling_sand/sim/cells/cells.hpp src/falling_sand/sim/cells/cells.cpp)
+        src/falling_sand/sim/CellSystem.hpp src/falling_sand/ui/Brush.cpp src/falling_sand/ui/Brush.hpp src/falling_sand/ui/InputSystem.cpp src/falling_sand/ui/InputSystem.hpp src/falling_sand/math/BitSet.cpp src/falling_sand/math/BitSet.hpp src/falling_sand/sim/cells/cells.hpp src/falling_sand/sim/cells/cells.cpp src/falling_sand/ui/Toolbox.cpp src/falling_sand/ui/Toolbox.hpp)
 target_include_directories(falling_sand
         PUBLIC
         src

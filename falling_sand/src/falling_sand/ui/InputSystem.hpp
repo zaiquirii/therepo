@@ -25,6 +25,7 @@ public:
     int keyPressed() { return keyPressed_; }
 
     Point mousePos(int windowWidth, int windowHeight, int simWidth, int simHeight);
+    Point mousePos();
 
 private:
     int keyPressed_;
