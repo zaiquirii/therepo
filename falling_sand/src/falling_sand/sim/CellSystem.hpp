@@ -25,20 +25,21 @@ private:
 
     Cell *cells_;
     int tickCount_;
-    bool touchValue;
+    bool evenTick;
 };
 
 class CellAPI {
 public:
-    CellAPI(CellSystem *system, int index);
+    CellAPI(CellSystem *system, int x, int y, bool touchValue);
 
     Cell get(Point offset);
 
-    void set(Point offset, Cell particle);
+    void set(Point offset, Cell cell);
+    int tickDirection() { return tickDirection_; }
 
 private:
     CellSystem *system_;
-    int index_;
+    int tickDirection_;
     int x_;
     int y_;
 };

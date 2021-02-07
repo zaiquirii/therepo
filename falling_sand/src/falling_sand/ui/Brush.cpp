@@ -19,7 +19,9 @@ void Brush::paintAt(CellSystem &system, Point pos) {
             if (x >= 0 && x < system.width &&
                 y >= 0 && y < system.height &&
                 shouldPaint(system.cellAt(x, y), type)) {
-                system.setCellAt(x, y, particle);
+                Cell newCell = particle;
+                newCell.color = rand();
+                system.setCellAt(x, y, newCell);
             }
         }
     }

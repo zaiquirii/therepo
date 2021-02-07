@@ -14,8 +14,8 @@ Toolbox::Toolbox() {
     cells_.push_back(WATER_CELL);
     cells_.push_back(WALL_CELL);
     cells_.push_back(OIL_CELL);
-    selectedCell_ = 1;
-    highlightedCell_ = 1;
+    selectedCell_ = 2;
+    highlightedCell_ = 2;
     location_ = {CELL_SPACING, CELL_SPACING};
 }
 
@@ -44,7 +44,7 @@ bool Toolbox::takeInput(InputSystem &input) {
 
 Brush &Toolbox::currentBrush() {
     currentBrush_.particle = cells_[selectedCell_];
-    currentBrush_.size = 10;
+    currentBrush_.size = 8;
     currentBrush_.type = selectedCell_ == 0 ? Fill : FillEmpty;
     return currentBrush_;
 }

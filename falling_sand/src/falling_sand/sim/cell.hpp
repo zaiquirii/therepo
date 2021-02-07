@@ -15,12 +15,13 @@ enum CellType : short {
 
 struct Cell {
     CellType type;
+    unsigned char color;
     short density;
-    bool touchValue;
+    bool touched;
     bool isLiquid;
     bool isSolid;
     bool isStatic;
-    float velocity;
+    float speed;
 };
 
 extern Cell EMPTY_CELL;
