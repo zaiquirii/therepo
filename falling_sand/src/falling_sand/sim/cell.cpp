@@ -1,14 +1,9 @@
 #include <falling_sand/sim/cell.hpp>
 #include <cstdlib>
-#include <cstdio>
 
 namespace falling_sand {
 
 Cell EMPTY_CELL = {.type = EMPTY};
-Cell WALL_CELL = {.type = WALL, .isStatic = true};
-Cell SAND_CELL = {.type = SAND, .density = 52, .isSolid = true};
-Cell WATER_CELL = {.type = WATER, .density = 50, .isLiquid = true};
-Cell OIL_CELL = {.type = OIL, .density = 48, .isLiquid = true};
 
 unsigned int darken(unsigned int r, unsigned int g, unsigned int b, float pct) {
     pct = 1 - pct;
@@ -16,11 +11,33 @@ unsigned int darken(unsigned int r, unsigned int g, unsigned int b, float pct) {
     g = g * pct;
     b = b * pct;
 
-    return (0xFF<<24) | (r << 16) | (g << 8) | b;
-
+    return (0xFF << 24) | (r << 16) | (g << 8) | b;
 }
 
-unsigned int getCellColor(Cell cell) {
+Cell createCell(CellType type) {
+    unsigned char color = rand() % 255;
+    switch (type) {
+        case EMPTY:
+            return EMPTY_CELL;
+        case SAND:
+            return {.type = SAND, .color = color, .density = 52, .isSolid = true};
+        case WALL:
+            return {.type = WALL, .color = color, .isStatic = true};
+        case WATER:
+            return {.type = WATER, .color = color, .density = 50, .isLiquid = true};
+        case OIL:
+            return {.type = OIL, .color = color, .density = 48, .isLiquid = true, .flammability = 100};
+        case WOOD:
+            return {.type = WOOD, .color = color, .isStatic = true, .flammability = 10};
+        case EMBER:
+            return {.type = EMBER, .color = color, .isStatic = true, .valueA = 45};
+        case FIRE:
+            return {.type = FIRE, .color = color, .valueA = 20 + (rand() % 20)};
+    }
+    return Cell();
+}
+
+unsigned int getCellColor(Cell cell, unsigned char colorShift) {
     switch (cell.type) {
         case EMPTY:
             return 0xFF000000;
@@ -29,10 +46,16 @@ unsigned int getCellColor(Cell cell) {
         case SAND:
             return darken(255, 255, 0, static_cast<float>(cell.color) / 255.0f * .2f);
         case WATER:
-            return darken(0, 115, 255, static_cast<float>(cell.color) / 255.0f * .3f);
-//            return darken(0, 115, 255, (rand() % 255) / 255.0 * .3f);
+            return darken(0, 115, 255, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
         case OIL:
-            return 0xFF853F00;
+            return darken(0x85, 0x3F, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
+        case WOOD:
+            return darken(0xac, 0x73, 0x39, static_cast<float>(cell.color) / 255.0f * .3f);
+        case EMBER:
+            return darken(255, 0, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
+        case FIRE:
+            return darken(255, 0, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
     }
 }
+
 }

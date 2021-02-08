@@ -30,6 +30,7 @@ int main(int argc, char *args[]) {
     bool quit = false;
     InputSystem inputSystem;
     Toolbox toolbox;
+    unsigned char colorShift;
 
     while (!quit) {
         inputSystem.pollInput();
@@ -50,7 +51,7 @@ int main(int argc, char *args[]) {
         Cell *currentState = sim.buffer();
         for (int i = 0; i < size; i++) {
             Cell s = currentState[i];
-            pixels[i] = getCellColor(s);
+            pixels[i] = getCellColor(s, colorShift);
         }
 
         SDL_UpdateTexture(texture, nullptr, pixels, config.width * sizeof(unsigned int));

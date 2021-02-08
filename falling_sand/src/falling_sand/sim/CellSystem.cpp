@@ -14,12 +14,11 @@ CellSystem::CellSystem(int width, int height) {
         cells_[i] = EMPTY_CELL;
     }
 
-    Cell wall = {.type = WALL};
     for (int i = 0; i < 25; i++) {
-        setCellAt(90 + i, 75, wall);
-        setCellAt(90, 75 - i, wall);
-        setCellAt(90 + 25, 75 - i, wall);
-        setCellAt(90 + 25, 250 - i * 2, SAND_CELL);
+        setCellAt(90 + i, 75, createCell(WALL));
+        setCellAt(90, 75 - i, createCell(WALL));
+        setCellAt(90 + 25, 75 - i, createCell(WALL));
+        setCellAt(90 + 25, 250 - i * 2, createCell(SAND));
     }
 }
 
@@ -76,6 +75,12 @@ void CellSystem::processCell(int index) {
             break;
         case OIL:
             updateOil(cell, api);
+            break;
+        case EMBER:
+            updateEmber(cell, api);
+            break;
+        case FIRE:
+            updateFire(cell, api);
             break;
     }
 }

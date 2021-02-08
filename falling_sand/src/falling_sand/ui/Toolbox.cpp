@@ -9,11 +9,14 @@ int CELL_SIZE = 25;
 int CELL_SPACING = 15;
 
 Toolbox::Toolbox() {
-    cells_.push_back(EMPTY_CELL);
-    cells_.push_back(SAND_CELL);
-    cells_.push_back(WATER_CELL);
-    cells_.push_back(WALL_CELL);
-    cells_.push_back(OIL_CELL);
+    cells_.push_back(createCell(EMPTY));
+    cells_.push_back(createCell(SAND));
+    cells_.push_back(createCell(WATER));
+    cells_.push_back(createCell(WALL));
+    cells_.push_back(createCell(OIL));
+    cells_.push_back(createCell(WOOD));
+    cells_.push_back(createCell(EMBER));
+    cells_.push_back(createCell(FIRE));
     selectedCell_ = 2;
     highlightedCell_ = 2;
     location_ = {CELL_SPACING, CELL_SPACING};
@@ -58,7 +61,7 @@ void Toolbox::render(SDL_Renderer *renderer) {
 }
 
 void Toolbox::renderCell(SDL_Renderer *renderer, int x, int y, Cell &cell, int border) {
-    int color = getCellColor(cell);
+    int color = getCellColor(cell, 0);
     short red = (color & 0x00FF0000) >> 16;
     short green = (color & 0x0000FF00) >> 8;
     short blue = (color & 0x000000FF);

@@ -12,6 +12,10 @@ int randomSide() {
     return rand() % 2 == 0 ? -1 : 1;
 }
 
+Point randomNeighbor() {
+    return {randomDirection(), randomDirection()};
+}
+
 const float ACCELERATION = .15;
 const float MAX_SPEED = 10;
 
@@ -22,7 +26,7 @@ bool canSwapPlaces(Cell &initiator, Cell &target) {
 }
 
 bool simulateFalling(Cell &cell, CellAPI &api) {
-    int jump = static_cast<int>(cell.speed) + 1;
+    int jump = static_cast<int>(cell.speedX) + 1;
     int targetNeighbor = 0;
     Cell neighbor;
     for (int i = 1; i <= jump; i++) {
@@ -38,7 +42,7 @@ bool simulateFalling(Cell &cell, CellAPI &api) {
         neighbor = api.get({0, targetNeighbor});
         // Only continue accelerating if we didn't hit anything
         if (targetNeighbor == jump) {
-            cell.speed += ACCELERATION;
+            cell.speedX += ACCELERATION;
         }
         float maxSpeed;
         if (neighbor.type == EMPTY) {
@@ -47,15 +51,15 @@ bool simulateFalling(Cell &cell, CellAPI &api) {
             maxSpeed = 2;
         }
 
-        if (cell.speed > maxSpeed) {
-            cell.speed = maxSpeed;
+        if (cell.speedX > maxSpeed) {
+            cell.speedX = maxSpeed;
         }
 
         api.set({0, targetNeighbor}, cell);
         api.set({}, neighbor);
         return true;
     }
-    cell.speed = 0;
+    cell.speedX = 0;
     return false;
 }
 
@@ -80,54 +84,43 @@ bool processAsLiquid(Cell &cell, CellAPI &api) {
         return true;
     }
 
-    int dx = randomSide();
-    Cell neighbor = api.get({dx, 1});
-    if (canSwapPlaces(cell, neighbor)) {
+    int ranDir;
+    if (cell.speedY != 0) {
+        ranDir = cell.speedY > 0 ? 1 : -1;
+    } else {
+        ranDir = randomSide();
+    }
+
+    Cell neighbor;
+    Point targetOffset = {0, 0};
+    int spread = 3;
+    for (int i = 1; i <= spread; i++) {
+        int delta = i * ranDir;
+        neighbor = api.get({delta, 1});
+        if (canSwapPlaces(cell, neighbor)) {
+            targetOffset = {delta, 1};
+            break;
+        } else {
+            neighbor = api.get({delta, 0});
+            if (!canSwapPlaces(cell, neighbor)) {
+                break;
+            } else {
+                targetOffset = {delta, 0};
+            }
+        }
+    }
+
+    // The x would have to have been changed if we found a target
+    if (targetOffset.x != 0) {
+        cell.speedY = ranDir;
+        neighbor = api.get(targetOffset);
         api.set({}, neighbor);
-        api.set({dx, 1}, cell);
+        api.set(targetOffset, cell);
         return true;
     }
 
-    neighbor = api.get({dx, 0});
-    if (canSwapPlaces(cell, neighbor)) {
-        api.set({}, neighbor);
-        api.set({dx, 0}, cell);
-        return true;
-    }
-
+    cell.speedY = 0;
     api.set({}, cell);
-
-    // TODO: Do the particle collisions so we can have spread factor
-//    dx *= 2;
-//    neighbor = api.get({dx, 1});
-//    if (canSwapPlaces(cell, neighbor)) {
-//        api.set({}, neighbor);
-//        api.set({dx, 1}, cell);
-//        return true;
-//    }
-//
-//    neighbor = api.get({dx, 0});
-//    if (canSwapPlaces(cell, neighbor)) {
-//        api.set({}, neighbor);
-//        api.set({dx, 0}, cell);
-//        return true;
-//    }
-//
-//    dx /= 2;
-//    dx *= 3;
-//    neighbor = api.get({dx, 1});
-//    if (canSwapPlaces(cell, neighbor)) {
-//        api.set({}, neighbor);
-//        api.set({dx, 1}, cell);
-//        return true;
-//    }
-//
-//    neighbor = api.get({dx, 0});
-//    if (canSwapPlaces(cell, neighbor)) {
-//        api.set({}, neighbor);
-//        api.set({dx, 0}, cell);
-//        return true;
-//    }
     return false;
 }
 
@@ -141,5 +134,49 @@ void updateWater(Cell cell, CellAPI api) {
 
 void updateOil(Cell cell, CellAPI api) {
     processAsLiquid(cell, api);
+}
+
+void updateEmber(Cell cell, CellAPI api) {
+    // valueA for ember is a lifetime parameter
+    Point offset = randomNeighbor();
+    Cell neighbor = api.get(offset);
+    if (neighbor.flammability > 0 &&
+        (rand() % 100) < neighbor.flammability) {
+        api.set(offset, createCell(EMBER));
+    } else if (neighbor.type == EMPTY) {
+        api.set(offset, createCell(FIRE));
+    }
+
+    cell.valueA--;
+    if (cell.valueA == 0) {
+        api.set({}, EMPTY_CELL);
+    } else {
+        cell.color -= rand() % 8;
+        api.set({}, cell);
+    }
+}
+
+void updateFire(Cell cell, CellAPI api) {
+    // valueA for fire is a lifetime parameter
+    cell.valueA--;
+    if (cell.valueA == 0) {
+        api.set({}, EMPTY_CELL);
+        return;
+    }
+
+    cell.color -= rand() % 8;
+    Point offset = {randomDirection(), -1};
+    Cell neighbor = api.get(offset);
+    if (neighbor.type == EMPTY) {
+        api.set({}, neighbor);
+        api.set(offset, cell);
+    } else {
+        // Remove fire
+        if (neighbor.flammability > 0 &&
+            (rand() % 100) < neighbor.flammability) {
+            api.set(offset, createCell(EMBER));
+        }
+        api.set({}, EMPTY_CELL);
+    }
 }
 }

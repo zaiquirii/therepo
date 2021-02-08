@@ -8,9 +8,9 @@ enum CellType : short {
     WALL = 2,
     WATER = 3,
     OIL = 4,
-//    POWDER = 2,
-//    LIQUID = 3,
-//    GAS = 4
+    WOOD = 5,
+    EMBER = 6,
+    FIRE = 7,
 };
 
 struct Cell {
@@ -21,16 +21,17 @@ struct Cell {
     bool isLiquid;
     bool isSolid;
     bool isStatic;
-    float speed;
+    char flammability;
+    float speedX;
+    float speedY;
+    int valueA;
 };
 
 extern Cell EMPTY_CELL;
-extern Cell SAND_CELL;
-extern Cell WALL_CELL;
-extern Cell WATER_CELL;
-extern Cell OIL_CELL;
 
-unsigned int getCellColor(Cell cell);
+Cell createCell(CellType type);
+
+unsigned int getCellColor(Cell cell, unsigned char colorShift);
 }
 
 #endif //SRC_FALLING_SAND_CELL_HPP
