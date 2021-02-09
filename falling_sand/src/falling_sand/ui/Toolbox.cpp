@@ -17,6 +17,8 @@ Toolbox::Toolbox() {
     cells_.push_back(createCell(WOOD));
     cells_.push_back(createCell(EMBER));
     cells_.push_back(createCell(FIRE));
+    cells_.push_back(createCell(ACID));
+    cells_.push_back(createCell(ICE));
     selectedCell_ = 2;
     highlightedCell_ = 2;
     location_ = {CELL_SPACING, CELL_SPACING};

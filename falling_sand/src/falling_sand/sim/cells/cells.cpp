@@ -172,11 +172,34 @@ void updateFire(Cell cell, CellAPI api) {
         api.set(offset, cell);
     } else {
         // Remove fire
-        if (neighbor.flammability > 0 &&
-            (rand() % 100) < neighbor.flammability) {
+        if (neighbor.type == ICE) {
+            api.set(offset, createCell(WATER));
+        } else if (neighbor.flammability > 0 &&
+                   (rand() % 100) < neighbor.flammability) {
             api.set(offset, createCell(EMBER));
         }
         api.set({}, EMPTY_CELL);
+    }
+}
+
+void updateAcid(Cell cell, CellAPI api) {
+    Point offset = {randomDirection(), rand() % 2};
+    Cell neighbor = api.get(offset);
+    if (neighbor.type != EMPTY &&
+        neighbor.type != ACID &&
+        neighbor.type != WALL) {
+        api.set({}, EMPTY_CELL);
+        api.set(offset, EMPTY_CELL);
+    } else {
+        processAsLiquid(cell, api);
+    }
+}
+
+void updateIce(Cell cell, CellAPI api) {
+    Point offset = randomNeighbor();
+    Cell neighbor = api.get(offset);
+    if (neighbor.type == WATER && rand() % 4 == 0) {
+        api.set(offset, createCell(ICE));
     }
 }
 }

@@ -82,6 +82,12 @@ void CellSystem::processCell(int index) {
         case FIRE:
             updateFire(cell, api);
             break;
+        case ACID:
+            updateAcid(cell, api);
+            break;
+        case ICE:
+            updateIce(cell, api);
+            break;
     }
 }
 

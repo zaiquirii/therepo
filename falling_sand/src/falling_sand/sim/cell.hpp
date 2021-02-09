@@ -3,14 +3,16 @@
 
 namespace falling_sand {
 enum CellType : short {
-    EMPTY = 0,
-    SAND = 1,
-    WALL = 2,
-    WATER = 3,
-    OIL = 4,
-    WOOD = 5,
-    EMBER = 6,
-    FIRE = 7,
+    EMPTY,
+    SAND,
+    WALL,
+    WATER,
+    OIL,
+    WOOD,
+    EMBER,
+    FIRE,
+    ACID,
+    ICE
 };
 
 struct Cell {

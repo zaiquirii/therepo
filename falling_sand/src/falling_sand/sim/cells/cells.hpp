@@ -14,6 +14,10 @@ void updateOil(Cell cell, CellAPI api);
 void updateEmber(Cell cell, CellAPI api);
 
 void updateFire(Cell cell, CellAPI api);
+
+void updateAcid(Cell cell, CellAPI api);
+
+void updateIce(Cell cell, CellAPI api);
 }
 
 #endif //SRC_FALLING_SAND_CELLS_HPP
