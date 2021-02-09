@@ -205,7 +205,9 @@ void updateIce(Cell cell, CellAPI api) {
 
 void updateLava(Cell cell, CellAPI api) {
     cell.color -= rand() % 8;
-    if (processAsLiquid(cell, api)) {
+    if (api.get({0, -1}).type == WATER || api.get({0, 1}).type == WATER) {
+        api.set({}, createCell(STONE));
+    } else if (processAsLiquid(cell, api)) {
         return;
     } else {
         api.set({}, cell);
