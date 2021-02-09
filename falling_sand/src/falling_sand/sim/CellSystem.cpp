@@ -88,6 +88,12 @@ void CellSystem::processCell(int index) {
         case ICE:
             updateIce(cell, api);
             break;
+        case LAVA:
+            updateLava(cell, api);
+            break;
+        case STONE:
+            updateStone(cell, api);
+            break;
     }
 }
 

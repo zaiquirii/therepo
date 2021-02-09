@@ -202,4 +202,30 @@ void updateIce(Cell cell, CellAPI api) {
         api.set(offset, createCell(ICE));
     }
 }
+
+void updateLava(Cell cell, CellAPI api) {
+    cell.color -= rand() % 8;
+    if (processAsLiquid(cell, api)) {
+        return;
+    } else {
+        api.set({}, cell);
+    }
+
+    Point offset = randomNeighbor();
+    Cell neighbor = api.get(offset);
+    if (neighbor.flammability > 0 &&
+        (rand() % 100) < neighbor.flammability) {
+        api.set(offset, createCell(EMBER));
+    }
+}
+
+void updateStone(Cell cell, CellAPI api) {
+    Cell upLeft = api.get({-1, -1});
+    Cell upRight = api.get({1, -1});
+    if (upLeft.type != STONE || upRight.type != STONE) {
+        simulateFalling(cell, api);
+    } else {
+        cell.speedY = 0;
+    }
+}
 }

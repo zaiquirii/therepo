@@ -12,7 +12,9 @@ enum CellType : short {
     EMBER,
     FIRE,
     ACID,
-    ICE
+    ICE,
+    LAVA,
+    STONE
 };
 
 struct Cell {

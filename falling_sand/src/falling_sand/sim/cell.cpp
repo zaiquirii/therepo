@@ -34,9 +34,13 @@ Cell createCell(CellType type) {
         case FIRE:
             return {.type = FIRE, .color = color, .valueA = 20 + (rand() % 20)};
         case ACID:
-            return { .type = ACID, .color = color, .density = 46, .isLiquid = true};
+            return {.type = ACID, .color = color, .density = 46, .isLiquid = true};
         case ICE:
-            return { .type = ICE, .color = color, .density = 20, .isSolid = true};
+            return {.type = ICE, .color = color, .density = 20, .isSolid = true};
+        case LAVA:
+            return {.type = LAVA, .color = color, .density = 80, .isSolid = true};
+        case STONE:
+            return {.type = STONE, .color = color, .density = 85, .isSolid = true};
     }
     return Cell();
 }
@@ -47,6 +51,8 @@ unsigned int getCellColor(Cell cell, unsigned char colorShift) {
             return 0xFF000000;
         case WALL:
             return 0xFF555555;
+        case STONE:
+            return darken(0x55, 0x55, 0x55, static_cast<float>(cell.color) / 255.0f * .2f);
         case SAND:
             return darken(255, 255, 0, static_cast<float>(cell.color) / 255.0f * .2f);
         case WATER:
@@ -59,6 +65,8 @@ unsigned int getCellColor(Cell cell, unsigned char colorShift) {
             return darken(0xac, 0x73, 0x39, static_cast<float>(cell.color) / 255.0f * .3f);
         case EMBER:
             return darken(255, 0, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
+        case LAVA:
+            return darken(255, 150, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
         case FIRE:
             return darken(255, 0, 0, static_cast<float>(cell.color + colorShift) / 255.0f * .3f);
         case ACID:

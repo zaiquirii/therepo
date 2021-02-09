@@ -15,10 +15,11 @@ Toolbox::Toolbox() {
     cells_.push_back(createCell(WALL));
     cells_.push_back(createCell(OIL));
     cells_.push_back(createCell(WOOD));
-    cells_.push_back(createCell(EMBER));
     cells_.push_back(createCell(FIRE));
     cells_.push_back(createCell(ACID));
     cells_.push_back(createCell(ICE));
+    cells_.push_back(createCell(LAVA));
+    cells_.push_back(createCell(STONE));
     selectedCell_ = 2;
     highlightedCell_ = 2;
     location_ = {CELL_SPACING, CELL_SPACING};
