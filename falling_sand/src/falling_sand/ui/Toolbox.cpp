@@ -10,18 +10,18 @@ int CELL_SPACING = 15;
 
 Toolbox::Toolbox() {
     cells_.push_back(createCell(EMPTY));
+    cells_.push_back(createCell(WALL));
+    cells_.push_back(createCell(STONE));
     cells_.push_back(createCell(SAND));
     cells_.push_back(createCell(WATER));
-    cells_.push_back(createCell(WALL));
     cells_.push_back(createCell(OIL));
     cells_.push_back(createCell(WOOD));
     cells_.push_back(createCell(FIRE));
     cells_.push_back(createCell(ACID));
     cells_.push_back(createCell(ICE));
     cells_.push_back(createCell(LAVA));
-    cells_.push_back(createCell(STONE));
-    selectedCell_ = 2;
-    highlightedCell_ = 2;
+    selectedCell_ = 4;
+    highlightedCell_ = 4;
     location_ = {CELL_SPACING, CELL_SPACING};
 }
 
@@ -50,7 +50,7 @@ bool Toolbox::takeInput(InputSystem &input) {
 
 Brush &Toolbox::currentBrush() {
     currentBrush_.particle = cells_[selectedCell_];
-    currentBrush_.size = 8;
+    currentBrush_.size = 20;
     currentBrush_.type = selectedCell_ == 0 ? Fill : FillEmpty;
     return currentBrush_;
 }

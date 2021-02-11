@@ -50,7 +50,7 @@ unsigned int getCellColor(Cell cell, unsigned char colorShift) {
         case EMPTY:
             return 0xFF000000;
         case WALL:
-            return 0xFF555555;
+            return darken(0x33, 0x33, 0x33, static_cast<float>(cell.color) / 255.0f * .2f);
         case STONE:
             return darken(0x55, 0x55, 0x55, static_cast<float>(cell.color) / 255.0f * .2f);
         case SAND:

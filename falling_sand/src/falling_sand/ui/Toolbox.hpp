@@ -8,11 +8,16 @@ namespace falling_sand {
 class Toolbox {
 public:
     Toolbox();
+
     bool takeInput(InputSystem &input);
+
     void render(SDL_Renderer *renderer);
+
     Brush &currentBrush();
+
 private:
     void renderCell(SDL_Renderer *renderer, int x, int y, Cell &cell, int border);
+
     std::vector<Cell> cells_;
     Point location_;
     int selectedCell_;

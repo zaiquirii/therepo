@@ -12,8 +12,14 @@ void Brush::paintAt(CellSystem &system, Point pos) {
     int startY = pos.y - size / 2;
     int startX = pos.x - size / 2;
 
+    float yPct = 0;
+    float xPct = 0;
     for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
+        yPct = static_cast<float>(i) / static_cast<float>(size) * 2 - 1;
+        xPct = 1 - sqrt(1 - yPct * yPct);
+        int offset = floor(xPct * static_cast<float>(size) / 2);
+
+        for (int j = offset; j < size - offset; j++) {
             int x = startX + j;
             int y = startY + i;
             if (x >= 0 && x < system.width &&
