@@ -20,6 +20,8 @@ public:
         return counter_s;
     }
 };
+
+template<typename FamilyType> TypeId Family<FamilyType>::counter_s;
 }
 
 #endif //SRC_FALLING_SAND_FAMILY_HPP

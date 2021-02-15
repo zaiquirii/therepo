@@ -46,6 +46,7 @@ Cell createCell(CellType type) {
 }
 
 unsigned int getCellColor(Cell cell, unsigned char colorShift) {
+    colorShift = 0;
     switch (cell.type) {
         case EMPTY:
             return 0xFF000000;

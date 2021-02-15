@@ -16,6 +16,6 @@ bool MainState::update(yage::World &world) {
         Point mousePos = inputSystem_.mousePos(windowSize_.x, windowSize_.y, simSize_.x, simSize_.y);
         toolbox.currentBrush().paintAt(cellSystem_, mousePos);
     }
-    return inputSystem_.quitRequested();
+    return !inputSystem_.quitRequested();
 }
 }

@@ -2,7 +2,7 @@
 #include <falling_sand/sim/CellSim.hpp>
 
 namespace falling_sand {
-bool CellSystem::setup(yage::World &world) {
+void CellSystem::setup(yage::World &world) {
     auto &cellSim = world.resources().get<CellSim>();
     for (int i = 0; i < 25; i++) {
         cellSim.setCellAt(90 + i, 75, createCell(WALL));
@@ -10,7 +10,6 @@ bool CellSystem::setup(yage::World &world) {
         cellSim.setCellAt(90 + 25, 75 - i, createCell(WALL));
         cellSim.setCellAt(90 + 25, 250 - i * 2, createCell(SAND));
     }
-    return true;
 }
 
 void CellSystem::update(yage::World &world) {

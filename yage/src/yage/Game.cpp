@@ -11,8 +11,13 @@ void Game::run() {
     }
 
     // Game loop here
+    isRunning_ = true;
     while (isRunning_) {
         nextFrame();
+    }
+
+    for (auto &system: systems_) {
+        system->tearDown(world_);
     }
 }
 
