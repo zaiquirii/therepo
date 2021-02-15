@@ -6,6 +6,8 @@ void Game::addSystem(GameSystem *system) {
 }
 
 void Game::run() {
+    assert(currentState_ != nullptr);
+    currentState_->setup(world_);
     for (auto &system: systems_) {
         system->setup(world_);
     }

@@ -7,7 +7,10 @@
 namespace yage {
 class GameState {
 public:
-    virtual bool update(World &world) = 0;
+    virtual void setup(yage::World &world) {};
+
+    virtual bool update(yage::World &world) = 0;
+
     virtual ~GameState() {};
 };
 }

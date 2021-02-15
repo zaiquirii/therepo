@@ -1,11 +1,9 @@
 #include <SDL.h>
-#include <yaml-cpp/yaml.h>
-#include "WindowConfig.h"
 #include "../YageException.hpp"
+#include "WindowConfig.h"
 
 namespace yage::window {
-SDL_Window *create_window(const char *path) {
-    auto windowConfig = YAML::LoadFile(path).as<yage::window::WindowConfig>();
+SDL_Window *create_window(WindowConfig &windowConfig) {
     SDL_Window *window = nullptr;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::string error = "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError());

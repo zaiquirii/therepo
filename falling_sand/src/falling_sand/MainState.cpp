@@ -1,20 +1,22 @@
-//
-// Created by Zachary Smith on 2/13/21.
-//
-
 #include "MainState.hpp"
+#include "SandboxConfig.hpp"
 
 namespace falling_sand {
-MainState::MainState(Point windowSize, Point simSize, CellSim &cellSystem) :
-        windowSize_(windowSize), simSize_(simSize), cellSystem_(cellSystem) {}
+void MainState::setup(yage::World &world) {
+    auto &config = world.resources().get<FallingSandConfig>();
+    windowSize_ = {config.window.width, config.window.height};
+}
 
 bool MainState::update(yage::World &world) {
     auto &toolbox = world.resources().get<Toolbox>();
+    auto &cellSim = world.resources().get<CellSim>();
 
     inputSystem_.pollInput();
     if (!toolbox.takeInput(inputSystem_)) {
-        Point mousePos = inputSystem_.mousePos(windowSize_.x, windowSize_.y, simSize_.x, simSize_.y);
-        toolbox.currentBrush().paintAt(cellSystem_, mousePos);
+        if (inputSystem_.mouseDown()) {
+            Point mousePos = inputSystem_.mousePos(windowSize_.x, windowSize_.y, cellSim.width, cellSim.height);
+            toolbox.currentBrush().paintAt(cellSim, mousePos);
+        }
     }
     return !inputSystem_.quitRequested();
 }

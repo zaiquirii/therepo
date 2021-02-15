@@ -3,9 +3,10 @@
 
 #include <SDL.h>
 #include <string>
+#include "WindowConfig.h"
 
 namespace yage::window {
-    SDL_Window* create_window(const char* path);
+    SDL_Window* create_window(WindowConfig &config);
 };
 
 #endif //FALLING_SAND_WINDOW_H

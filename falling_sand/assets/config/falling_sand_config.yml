@@ -2,7 +2,6 @@ window:
   title: "Test"
   height: 960
   width: 1280
-
-sim:
-  width: 200
-  height: 150
+sandbox:
+  width: 400
+  height: 300

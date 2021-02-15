@@ -32,7 +32,7 @@ private:
     bool quitRequested_;
     SDL_Event event_;
     Point rawMousePos_;
-    bool mouseDown_;
+    bool mouseDown_ = false;
 };
 }
 

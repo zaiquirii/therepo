@@ -23,6 +23,7 @@ private:
     Point location_;
     int selectedCell_;
     int highlightedCell_;
+    bool mouseWasDown_;
     SDL_Rect rect_;
     Brush currentBrush_;
 };

@@ -15,7 +15,7 @@ add_executable(falling_sand
         src/falling_sand/main.cpp
         src/falling_sand/sim/cell.hpp
         src/falling_sand/sim/cell.cpp
-        src/falling_sand/sim/SandboxConfig.hpp
+        src/falling_sand/SandboxConfig.hpp
         src/falling_sand/sim/CellSim.cpp
         src/falling_sand/sim/CellSim.hpp
         src/falling_sand/ui/Brush.cpp

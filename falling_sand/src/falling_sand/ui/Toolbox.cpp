@@ -34,15 +34,19 @@ bool Toolbox::takeInput(InputSystem &input) {
         mousePos.y < location_.y + ((CELL_SIZE + CELL_SPACING) * cells_.size())) {
         int offset = mousePos.y - location_.y;
         int cellIndex = offset / (CELL_SIZE + CELL_SPACING);
-        if (offset % (CELL_SIZE + CELL_SPACING) < CELL_SIZE) {
+
+        if (!input.mouseDown() &&
+            offset % (CELL_SIZE + CELL_SPACING) < CELL_SIZE) {
             highlightedCell_ = cellIndex;
         } else {
-            highlightedCell_ = -1;
+            if (input.mouseDown() && highlightedCell_ != -1) {
+                selectedCell_ = highlightedCell_;
+                return true;
+            } else {
+                highlightedCell_ = -1;
+            }
         }
 
-        if (highlightedCell_ != -1 && input.mouseDown()) {
-            selectedCell_ = highlightedCell_;
-        }
         return highlightedCell_ != -1;
     }
     return false;
