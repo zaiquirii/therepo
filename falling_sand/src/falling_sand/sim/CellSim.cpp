@@ -1,49 +1,35 @@
-#include "CellSystem.hpp"
+#include "CellSim.hpp"
 
 #include <memory>
 #include <falling_sand/sim/cells/cells.hpp>
 
 namespace falling_sand {
-CellSystem::CellSystem(int width, int height) {
-    this->width = width;
-    this->height = height;
-    int size = width * height;
+CellSim::CellSim(int width, int height) :
+        width(width), height(height),
+        cells_(std::unique_ptr<Cell>(new Cell[width * height])) {}
 
-    cells_ = new Cell[size];
-    for (int i = 0; i < size; i++) {
-        cells_[i] = EMPTY_CELL;
-    }
-
-    for (int i = 0; i < 25; i++) {
-        setCellAt(90 + i, 75, createCell(WALL));
-        setCellAt(90, 75 - i, createCell(WALL));
-        setCellAt(90 + 25, 75 - i, createCell(WALL));
-        setCellAt(90 + 25, 250 - i * 2, createCell(SAND));
-    }
-}
-
-Cell CellSystem::cellAt(int x, int y) {
+Cell CellSim::cellAt(int x, int y) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         int index = width * y + x;
-        return cells_[index];
+        return cells_.get()[index];
     }
     return {.type = WALL};
 }
 
-void CellSystem::setCellAt(int x, int y, Cell cell) {
+void CellSim::setCellAt(int x, int y, Cell cell) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         int index = this->width * y + x;
         cell.touched = true;
-        cells_[index] = cell;
+        cells_.get()[index] = cell;
     }
 }
 
-void CellSystem::tick() {
+void CellSim::tick() {
     tickCount_++;
     evenTick = tickCount_ % 2 == 0;
     int size = width * height;
     for (int i = 0; i < size; i++) {
-        cells_[i].touched = false;
+        cells_.get()[i].touched = false;
     }
 
     for (int i = 0; i < size; i++) {
@@ -55,8 +41,8 @@ void CellSystem::tick() {
     }
 }
 
-void CellSystem::processCell(int index) {
-    Cell cell = cells_[index];
+void CellSim::processCell(int index) {
+    Cell cell = cells_.get()[index];
     // This cell has already been touched this frame
     if (cell.touched) {
         return;
@@ -65,7 +51,7 @@ void CellSystem::processCell(int index) {
     int x = index % width;
     int y = index / width;
 
-    CellAPI api(this, x, y, evenTick);
+    CellAPI api(*this, x, y, evenTick);
     switch (cell.type) {
         case SAND:
             updateSand(cell, api);
@@ -97,17 +83,17 @@ void CellSystem::processCell(int index) {
     }
 }
 
-CellAPI::CellAPI(CellSystem *system, int x, int y, bool touchValue) :
-        system_(system),
+CellAPI::CellAPI(CellSim &system, int x, int y, bool touchValue) :
+        cellSim_(system),
         x_(x),
         y_(y),
         tickDirection_(touchValue ? -1 : 1) {}
 
 Cell CellAPI::get(Point offset) {
-    return system_->cellAt(x_ + offset.x, y_ + offset.y);
+    return cellSim_.cellAt(x_ + offset.x, y_ + offset.y);
 }
 
 void CellAPI::set(Point offset, Cell cell) {
-    return system_->setCellAt(x_ + offset.x, y_ + offset.y, cell);
+    return cellSim_.setCellAt(x_ + offset.x, y_ + offset.y, cell);
 }
 }

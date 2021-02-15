@@ -2,10 +2,11 @@
 #define SRC_FALLING_SAND_TOOLBOX_HPP
 
 
+#include <yage/NoCopy.hpp>
 #include "Brush.hpp"
 
 namespace falling_sand {
-class Toolbox {
+class Toolbox : yage::NoCopy {
 public:
     Toolbox();
 

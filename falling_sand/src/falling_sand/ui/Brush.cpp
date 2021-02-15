@@ -8,7 +8,7 @@ bool shouldPaint(Cell cell, BrushType type) {
     return cell.type == EMPTY;
 }
 
-void Brush::paintAt(CellSystem &system, Point pos) {
+void Brush::paintAt(CellSim &system, Point pos) {
     int startY = pos.y - size / 2;
     int startX = pos.x - size / 2;
 

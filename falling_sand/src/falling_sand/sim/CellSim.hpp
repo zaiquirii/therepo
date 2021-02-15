@@ -1,44 +1,46 @@
-#ifndef SRC_FALLING_SAND_CELLSYSTEM_HPP
-#define SRC_FALLING_SAND_CELLSYSTEM_HPP
+#ifndef SRC_FALLING_SAND_CELLSIM_HPP
+#define SRC_FALLING_SAND_CELLSIM_HPP
 
+#include <yage/yage.hpp>
 #include <vector>
 #include <falling_sand/ui/InputSystem.hpp>
 #include "cell.hpp"
 
 namespace falling_sand {
-class CellSystem {
+class CellSim {
 public:
-    CellSystem(int width, int height);
+    CellSim(int width, int height);
 
-    Cell *buffer() { return cells_; }
+    void tick();
+
+    Cell *buffer() { return cells_.get(); }
 
     Cell cellAt(int x, int y);
 
     void setCellAt(int x, int y, Cell cell);
-
-    void tick();
 
     int width;
     int height;
 private:
     void processCell(int index);
 
-    Cell *cells_;
+    std::unique_ptr<Cell> cells_;
     int tickCount_;
     bool evenTick;
 };
 
 class CellAPI {
 public:
-    CellAPI(CellSystem *system, int x, int y, bool touchValue);
+    CellAPI(CellSim &system, int x, int y, bool touchValue);
 
     Cell get(Point offset);
 
     void set(Point offset, Cell cell);
+
     int tickDirection() { return tickDirection_; }
 
 private:
-    CellSystem *system_;
+    CellSim &cellSim_;
     int tickDirection_;
     int x_;
     int y_;
@@ -46,4 +48,4 @@ private:
 }
 
 
-#endif //SRC_FALLING_SAND_CELLSYSTEM_HPP
+#endif //SRC_FALLING_SAND_CELLSIM_HPP

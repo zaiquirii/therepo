@@ -1,11 +1,13 @@
 #include <SDL.h>
-#include <yage/yage.h>
+#include <yage/yage.hpp>
 #include <yaml-cpp/yaml.h>
 #include <falling_sand/sim/cell.hpp>
 #include <falling_sand/ui/InputSystem.hpp>
 #include <falling_sand/sim/SandboxConfig.hpp>
-#include <falling_sand/sim/CellSystem.hpp>
+#include <falling_sand/sim/CellSim.hpp>
 #include <falling_sand/ui/Toolbox.hpp>
+#include "MainState.hpp"
+#include "CellSystem.hpp"
 
 using namespace falling_sand;
 
@@ -19,7 +21,10 @@ int main(int argc, char *args[]) {
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
     auto config = YAML::LoadFile("../assets/config/sandbox_config.yml").as<SandboxConfig>();
-    auto sim = CellSystem(config.width, config.height);
+    auto sim = CellSim(config.width, config.height);
+    auto cellSystem = new CellSystem();
+
+    Toolbox globalToolbox;
 
     SDL_Texture *texture = SDL_CreateTexture(
             renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC,
@@ -28,24 +33,20 @@ int main(int argc, char *args[]) {
     memset(pixels, 0, config.width * config.height * sizeof(unsigned int));
 
     bool quit = false;
-    InputSystem inputSystem;
-    Toolbox toolbox;
     unsigned char colorShift;
 
+    yage::Game game = yage::Game();
+    game.world().resources().set(&sim);
+    game.world().resources().set(&globalToolbox);
+    game.addSystem(cellSystem);
+    game.setInitialState(new MainState(
+            {1290, 960},
+            {sim.width, sim.height},
+            sim));
+
+    int frameCount = 0;
     while (!quit) {
-        inputSystem.pollInput();
-        if (inputSystem.quitRequested()) {
-            quit = true;
-        }
-
-        if (!toolbox.takeInput(inputSystem)) {
-            if (inputSystem.mouseDown()) {
-                Point mousePos = inputSystem.mousePos(1280, 960, sim.width, sim.height);
-                toolbox.currentBrush().paintAt(sim, mousePos);
-            }
-        }
-
-        sim.tick();
+        game.nextFrame();
 
         int size = sim.width * sim.height;
         Cell *currentState = sim.buffer();
@@ -58,12 +59,16 @@ int main(int argc, char *args[]) {
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
 
         // RENDER TOOLBOX HERE
-        toolbox.render(renderer);
+        game.world().resources().get<Toolbox>().render(renderer);
 
         SDL_RenderPresent(renderer);
 
         // TODO: Fix the framerate
         SDL_Delay(10);
+        frameCount++;
+        if (frameCount > 500) {
+            quit = true;
+        }
     }
 
     SDL_DestroyTexture(texture);

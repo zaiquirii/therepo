@@ -2,7 +2,7 @@
 #define SRC_FALLING_SAND_BRUSH_HPP
 
 #include <falling_sand/sim/cell.hpp>
-#include <falling_sand/sim/CellSystem.hpp>
+#include <falling_sand/sim/CellSim.hpp>
 #include "InputSystem.hpp"
 
 namespace falling_sand {
@@ -20,7 +20,7 @@ struct Brush {
     BrushType type = FillEmpty;
     int size;
 
-    void paintAt(CellSystem &system, Point pos);
+    void paintAt(CellSim &system, Point pos);
 };
 }
 
