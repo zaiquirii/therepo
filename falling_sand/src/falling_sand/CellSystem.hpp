@@ -2,7 +2,7 @@
 #define SRC_FALLING_SAND_CELLSYSTEM_HPP
 
 
-#include <yage/GameSystem.hpp>
+#include <yage/yage.hpp>
 
 namespace falling_sand {
 class CellSystem: public yage::GameSystem {

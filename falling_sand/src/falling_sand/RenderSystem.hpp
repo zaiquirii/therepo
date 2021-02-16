@@ -3,7 +3,7 @@
 
 
 #include <SDL.h>
-#include <yage/GameSystem.hpp>
+#include <yage/yage.hpp>
 
 namespace falling_sand {
 class RenderSystem : public yage::GameSystem {
