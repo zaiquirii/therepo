@@ -1,11 +1,9 @@
-#include <cstdio>
 #include "Time.hpp"
 
 namespace yage {
 
-Time::Time(Time::Duration fixedDelta) : fixedDelta_(fixedDelta) {
+Time::Time(Time::Seconds fixedDelta) : fixedDelta_(fixedDelta) {
     fixedDeltaRaw_ = fixedDelta.count();
-    printf("fixed delta: %f\n", fixedDeltaRaw_);
 }
 
 void Time::start() {
@@ -18,7 +16,7 @@ void Time::accumulate() {
     using namespace std::chrono;
     auto currentTime = steady_clock::now();
     auto difference = currentTime - lastTimeSeen_;
-    delta_ = Duration(difference);
+    delta_ = Seconds(difference);
     accumulatedTime_ += delta_;
     lastTimeSeen_ = currentTime;
 }

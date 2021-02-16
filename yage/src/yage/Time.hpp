@@ -5,11 +5,11 @@
 
 namespace yage {
 class Time {
-    using Clock = std::chrono::steady_clock;
 public:
-    using Duration = std::chrono::duration<double>;
+    using Clock = std::chrono::steady_clock;
+    using Seconds = std::chrono::duration<double>;
 
-    explicit Time(Duration fixedDelta);
+    explicit Time(Seconds fixedDelta);
 
     void start();
 
@@ -28,9 +28,9 @@ public:
 private:
     Clock::time_point startTime_;
     Clock::time_point lastTimeSeen_;
-    Duration delta_;
-    Duration accumulatedTime_;
-    Duration fixedDelta_;
+    Seconds delta_;
+    Seconds accumulatedTime_;
+    Seconds fixedDelta_;
     double fixedDeltaRaw_;
     int fixedStepCount_;
 };
