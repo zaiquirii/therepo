@@ -7,7 +7,7 @@ void MainState::setup(yage::World &world) {
     windowSize_ = {config.window.width, config.window.height};
 }
 
-bool MainState::update(yage::World &world) {
+bool MainState::fixedUpdate(yage::World &world) {
     auto &toolbox = world.resources().get<Toolbox>();
     auto &cellSim = world.resources().get<CellSim>();
 

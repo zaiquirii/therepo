@@ -8,7 +8,7 @@ namespace falling_sand {
 class CellSystem: public yage::GameSystem {
 public:
     void setup(yage::World &world) override;
-    void update(yage::World &world) override;
+    void fixedUpdate(yage::World &world) override;
 };
 }
 

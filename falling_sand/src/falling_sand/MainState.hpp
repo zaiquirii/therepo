@@ -9,7 +9,7 @@ namespace falling_sand {
 class MainState : public yage::GameState {
 public:
     void setup(yage::World &world) override;
-    bool update(yage::World &world) override;
+    bool fixedUpdate(yage::World &world) override;
 
 private:
     InputSystem inputSystem_;

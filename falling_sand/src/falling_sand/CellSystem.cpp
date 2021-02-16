@@ -12,7 +12,7 @@ void CellSystem::setup(yage::World &world) {
     }
 }
 
-void CellSystem::update(yage::World &world) {
+void CellSystem::fixedUpdate(yage::World &world) {
     auto &cellSim = world.resources().get<CellSim>();
     cellSim.tick();
 }

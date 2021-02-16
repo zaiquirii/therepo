@@ -20,7 +20,7 @@ set(YAGE_HEADERS ./include/yage.h)
 add_library(yage
         STATIC
         src/yage/window/WindowConfig.h
-        src/yage/window/window.cpp src/yage/Game.hpp src/yage/GameState.hpp src/yage/Game.cpp src/yage/GameSystem.hpp src/yage/World.cpp src/yage/World.hpp src/yage/Resources.cpp src/yage/Resources.hpp src/yage/Family.hpp src/yage/NoCopy.hpp src/yage/YageException.cpp src/yage/YageException.hpp)
+        src/yage/window/window.cpp src/yage/Game.hpp src/yage/GameState.hpp src/yage/Game.cpp src/yage/GameSystem.hpp src/yage/World.cpp src/yage/World.hpp src/yage/Resources.cpp src/yage/Resources.hpp src/yage/Family.hpp src/yage/NoCopy.hpp src/yage/YageException.cpp src/yage/YageException.hpp src/yage/Time.cpp src/yage/Time.hpp)
 set_target_properties(yage PROPERTIES LINKER_LANGUAGE CXX)
 
 # add the executable

@@ -14,11 +14,9 @@ public:
     void addSystem(GameSystem *system);
     void setInitialState(GameState *state);
     void run();
-    void nextFrame();
     World &world() { return world_; }
 
 private:
-    bool isRunning_;
     World world_;
     std::unique_ptr<GameState> currentState_;
     std::vector<std::unique_ptr<GameSystem>> systems_;

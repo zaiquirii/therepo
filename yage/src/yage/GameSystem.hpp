@@ -7,7 +7,8 @@ namespace yage {
 class GameSystem {
 public:
     virtual void setup(yage::World &world) {};
-    virtual void update(yage::World &world) = 0;
+    virtual void update(yage::World &world) {};
+    virtual void fixedUpdate(yage::World &world) {};
     virtual void tearDown(yage::World &world) {};
     virtual ~GameSystem() {};
 };
