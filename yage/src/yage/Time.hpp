@@ -7,7 +7,7 @@ namespace yage {
 class Time {
 public:
     using Clock = std::chrono::steady_clock;
-    using Seconds = std::chrono::duration<double>;
+    using Seconds = std::chrono::duration<float>;
 
     explicit Time(Seconds fixedDelta);
 
@@ -19,9 +19,10 @@ public:
      */
     void accumulate();
 
+    /// Do not call this outside of the engine, bad things will happen
     bool consumeFixedDelta();
 
-    double fixedDelta() const { return fixedDeltaRaw_; }
+    float fixedDelta() const { return fixedDeltaRaw_; }
 
     int fixedSteps() { return fixedStepCount_; }
 
@@ -31,8 +32,8 @@ private:
     Seconds delta_;
     Seconds accumulatedTime_;
     Seconds fixedDelta_;
-    double fixedDeltaRaw_;
-    int fixedStepCount_;
+    float fixedDeltaRaw_;
+    int fixedStepCount_ = 0;
 };
 }
 

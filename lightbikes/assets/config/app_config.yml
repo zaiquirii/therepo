@@ -1,0 +1,7 @@
+window:
+  title: "Lightbikes"
+  height: 960
+  width: 1280
+lightbikes:
+  worldDim: [160, 120]
+  bikeSpeed: 1

@@ -6,15 +6,21 @@
  * Holds all entities and resources
  */
 #include "Resources.hpp"
+#include <entt/entity/registry.hpp>
 
 namespace yage {
-class World {
-public:
-    Resources &resources() { return resources_; }
-
-private:
-    Resources resources_;
-};
+using World = entt::registry;
+//class World {
+//public:
+//    using Entities = entt::registry;
+//
+//    Resources &resources() { return resources_; }
+//    Entities &entities() { return entities_; }
+//
+//private:
+//    Resources resources_;
+//    Entities entities_;
+//};
 }
 
 

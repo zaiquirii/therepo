@@ -7,6 +7,7 @@ void InputSystem::pollInput() {
         switch (event_.type) {
             case SDL_QUIT:
                 quitRequested_ = true;
+                break;
             case SDL_MOUSEMOTION:
                 rawMousePos_ = {.x = event_.motion.x, .y = event_.motion.y};
                 break;

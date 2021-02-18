@@ -19,6 +19,7 @@ set(YAGE_HEADERS ./include/yage.h)
 
 add_library(yage
         STATIC
+        src/third_party/HandmadeMath.h
         src/yage/window/WindowConfig.h
         src/yage/window/window.cpp
         src/yage/Game.hpp
@@ -37,18 +38,19 @@ add_library(yage
         src/yage/Time.hpp
         src/yage/FrameRateLimiter.cpp
         src/yage/FrameRateLimiter.hpp
-        src/third_party/HandmadeMath.h src/yage/math.hpp)
+        src/yage/math.hpp
+        src/yage/math.cpp)
 set_target_properties(yage PROPERTIES LINKER_LANGUAGE CXX)
 
 # add the executable
 target_include_directories(yage PUBLIC
-        "./include"
+        "./src"
         ${PROJECT_BINARY_DIR}
         ${SDL2_INCLUDE_DIRS}
         )
 
 set(YAGE_INCLUDE_DIRS
-        "./include")
+        "./src")
 
 target_link_libraries(yage ${SDL2_LIBRARIES} ${CONAN_LIBS})
 

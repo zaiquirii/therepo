@@ -18,15 +18,15 @@ void Game::run() {
     }
 
     FrameRateLimiter frameRateLimiter;
-    Time time(DEFAULT_FIXED_TIME);
     // Make time available to all things
     // Intentionally not making it available in setup for now
-    world_.resources().set(&time);
-    time.start();
+    world_.set<Time>(DEFAULT_FIXED_TIME);
+    world_.ctx<Time>().start();
 
     // Game loop here
     bool isRunning = true;
     while (isRunning) {
+        auto &time = world_.ctx<Time>();
         time.accumulate();
         while (time.consumeFixedDelta()) {
             isRunning = currentState_->fixedUpdate(world_);
