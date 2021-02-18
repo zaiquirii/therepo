@@ -3,7 +3,7 @@
 
 namespace falling_sand {
 void CellSystem::setup(yage::World &world) {
-    auto &cellSim = world.resources().get<CellSim>();
+    auto &cellSim = world.ctx<CellSim>();
     for (int i = 0; i < 25; i++) {
         cellSim.setCellAt(90 + i, 75, createCell(WALL));
         cellSim.setCellAt(90, 75 - i, createCell(WALL));
@@ -13,7 +13,7 @@ void CellSystem::setup(yage::World &world) {
 }
 
 void CellSystem::fixedUpdate(yage::World &world) {
-    auto &cellSim = world.resources().get<CellSim>();
+    auto &cellSim = world.ctx<CellSim>();
     cellSim.tick();
 }
 };

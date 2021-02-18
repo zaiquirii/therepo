@@ -7,7 +7,7 @@
 
 namespace falling_sand {
 void RenderSystem::setup(yage::World &world) {
-    auto &config = world.resources().get<FallingSandConfig>();
+    auto &config = world.ctx<FallingSandConfig>();
     window_ = yage::window::create_window(config.window);
     renderer_ = SDL_CreateRenderer(window_, -1, 0);
     texture_ = SDL_CreateTexture(
@@ -18,7 +18,7 @@ void RenderSystem::setup(yage::World &world) {
 }
 
 void RenderSystem::update(yage::World &world) {
-    auto &cellSim = world.resources().get<CellSim>();
+    auto &cellSim = world.ctx<CellSim>();
     int size = cellSim.width * cellSim.height;
     Cell *currentState = cellSim.buffer();
     for (int i = 0; i < size; i++) {
@@ -30,7 +30,7 @@ void RenderSystem::update(yage::World &world) {
     SDL_RenderCopy(renderer_, texture_, nullptr, nullptr);
 
     // RENDER TOOLBOX HERE
-    world.resources().get<Toolbox>().render(renderer_);
+    world.ctx<Toolbox>().render(renderer_);
     SDL_RenderPresent(renderer_);
 }
 

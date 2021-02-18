@@ -3,13 +3,13 @@
 
 namespace falling_sand {
 void MainState::setup(yage::World &world) {
-    auto &config = world.resources().get<FallingSandConfig>();
+    auto &config = world.ctx<FallingSandConfig>();
     windowSize_ = {config.window.width, config.window.height};
 }
 
 bool MainState::fixedUpdate(yage::World &world) {
-    auto &toolbox = world.resources().get<Toolbox>();
-    auto &cellSim = world.resources().get<CellSim>();
+    auto &toolbox = world.ctx<Toolbox>();
+    auto &cellSim = world.ctx<CellSim>();
 
     inputSystem_.pollInput();
     if (!toolbox.takeInput(inputSystem_)) {
