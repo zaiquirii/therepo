@@ -39,7 +39,7 @@ add_library(yage
         src/yage/FrameRateLimiter.cpp
         src/yage/FrameRateLimiter.hpp
         src/yage/math.hpp
-        src/yage/math.cpp)
+        src/yage/math.cpp src/yage/physics/BoundingBox.cpp src/yage/physics/BoundingBox.hpp)
 set_target_properties(yage PROPERTIES LINKER_LANGUAGE CXX)
 
 # add the executable

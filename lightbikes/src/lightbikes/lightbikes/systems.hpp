@@ -4,7 +4,7 @@
 #include <yage/yage.hpp>
 
 namespace lightbikes {
-class MoveLightbikesSystem : public yage::GameSystem {
+class LightbikeSystem : public yage::GameSystem {
     void fixedUpdate(yage::World &world) override;
 };
 }

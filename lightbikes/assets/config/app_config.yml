@@ -1,7 +1,8 @@
 window:
   title: "Lightbikes"
-  height: 960
   width: 1280
+  height: 960
 lightbikes:
-  worldDim: [160, 120]
-  bikeSpeed: 1
+  worldDim: [320, 240]
+  bikeSpeed: 50
+  pathReserveSize: 3000

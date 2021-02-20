@@ -19,6 +19,8 @@ public:
      */
     void accumulate();
 
+    double accumulatedTime() { return accumulatedTime_.count(); }
+
     /// Do not call this outside of the engine, bad things will happen
     bool consumeFixedDelta();
 

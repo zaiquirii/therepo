@@ -13,5 +13,6 @@
 #include "World.hpp"
 #include "YageException.hpp"
 #include "math.hpp"
+#include "physics/BoundingBox.hpp"
 
 #endif //YAGE_YAGE_H

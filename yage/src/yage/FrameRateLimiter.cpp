@@ -1,5 +1,6 @@
 #include "FrameRateLimiter.hpp"
 #include <cstdio>
+#include <SDL.h>
 
 namespace yage {
 void FrameRateLimiter::delayFrame() {
@@ -15,5 +16,6 @@ void FrameRateLimiter::delayFrame() {
         framesSeen_ = 0;
         printf("FRAMERATE: %f\n", lastFramerate_);
     }
+    SDL_Delay(2);
 }
 }

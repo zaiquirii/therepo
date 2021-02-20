@@ -1,3 +1,4 @@
+#include <iostream>
 #import "Game.hpp"
 #include "Time.hpp"
 #include "FrameRateLimiter.hpp"
@@ -23,6 +24,7 @@ void Game::run() {
     world_.set<Time>(DEFAULT_FIXED_TIME);
     world_.ctx<Time>().start();
 
+    std::cout << "running game loop" << std::endl;
     // Game loop here
     bool isRunning = true;
     while (isRunning) {
@@ -39,6 +41,7 @@ void Game::run() {
         for (auto &system: systems_) {
             system->update(world_);
         }
+
         frameRateLimiter.delayFrame();
     }
 

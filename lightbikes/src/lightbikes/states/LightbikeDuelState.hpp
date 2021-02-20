@@ -7,9 +7,11 @@
 namespace lightbikes {
 class LightbikeDuelState : public yage::GameState {
     void setup(yage::World &world) override;
+
     bool fixedUpdate(yage::World &world) override;
+
 private:
-//    std::vector<
+    std::vector<yage::World::entity_type> lightbikes_;
 };
 }
 

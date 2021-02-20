@@ -2,6 +2,7 @@
 #define SRC_FALLING_SAND_MATH_HPP
 
 #include <third_party/HandmadeMath.h>
+#include <yaml-cpp/yaml.h>
 
 namespace yage {
 using Vec2 = hmm_v2;

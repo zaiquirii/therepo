@@ -12,8 +12,8 @@ int main(int argc, char *args[]) {
     yage::Game game = yage::Game();
     game.world().set<AppConfig>(config);
     game.addSystem(new InputSystem());
+    game.addSystem(new LightbikeSystem());
     game.addSystem(new RenderSystem());
-    game.addSystem(new MoveLightbikesSystem());
     game.setInitialState(new LightbikeDuelState());
     game.run();
     return 0;

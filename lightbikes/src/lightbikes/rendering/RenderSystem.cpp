@@ -7,9 +7,12 @@
 #include <lightbikes/AppConfig.hpp>
 #include <lightbikes/components/Position.hpp>
 #include <lightbikes/rendering/Renderable.hpp>
+#include <lightbikes/components/LightbikePath.hpp>
 
 namespace lightbikes {
 void drawRenderables(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World &entities);
+
+void drawPaths(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World &entities);
 
 void RenderSystem::setup(yage::World &world) {
     auto &config = world.ctx<AppConfig>();
@@ -28,9 +31,12 @@ void RenderSystem::fixedUpdate(yage::World &world) {
     auto cameraPos = world.get<Position>(cameraEnt);
     auto camera = world.get<Camera>(cameraEnt);
     auto scale = windowDims_.x / camera.width;
+    SDL_RenderSetIntegerScale(renderer_, SDL_TRUE);
     SDL_RenderSetScale(renderer_, scale, scale);
-    auto projectionMatrix =  yage::scale({scale, scale, 1});
 
+    auto projectionMatrix = yage::translation({-cameraPos.x, -cameraPos.y, 0});
+
+    drawPaths(renderer_, projectionMatrix, world);
     drawRenderables(renderer_, projectionMatrix, world);
 
     SDL_RenderPresent(renderer_);
@@ -51,12 +57,51 @@ void drawRenderables(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World
     for (auto[ent, pos, renderable]: view.each()) {
         switch (renderable.type) {
             case Renderable::Lightbike:
-                auto newPos = projection * pos.asVec();
+                auto newPos = pos.asVec();
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_FRect rect{newPos.x, newPos.y, 1, 1};
-//                SDL_FRect rect{newPos.x * 1280, newPos.y * 960, 1, 1};
                 SDL_RenderFillRectF(renderer, &rect);
                 break;
+        }
+    }
+}
+
+void drawPaths(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World &world) {
+    auto view = world.view<const LightbikePath>();
+    SDL_FRect rect;
+    float width = 1;
+    for (auto [ent, path]: view.each()) {
+        for (int i = 0; i < path.points.size() - 1; i++) {
+            auto start = path.points[i];
+            auto end = path.points[i + 1];
+            if (start.x == end.x) {
+                if (end.y < start.y) {
+                    rect.x = end.x;
+                    rect.y = end.y;
+                    rect.h = start.y - end.y + width;
+                    rect.w = width;
+                } else {
+                    rect.x = start.x;
+                    rect.y = start.y;
+                    rect.h = end.y - start.y + width;
+                    rect.w = width;
+                }
+            } else {
+                if (end.x < start.x) {
+                    rect.x = end.x;
+                    rect.y = end.y;
+                    rect.w = start.x - end.x;
+                    rect.h = width;
+                } else {
+                    rect.x = start.x;
+                    rect.y = start.y;
+                    rect.w = end.x - start.x;
+                    rect.h = width;
+                }
+            }
+            auto color = path.color;
+            SDL_SetRenderDrawColor(renderer, color[0], color[1], color[2], 0xFF);
+            SDL_RenderFillRectF(renderer, &rect);
         }
     }
 }

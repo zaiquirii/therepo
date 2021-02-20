@@ -10,17 +10,6 @@
 
 namespace yage {
 using World = entt::registry;
-//class World {
-//public:
-//    using Entities = entt::registry;
-//
-//    Resources &resources() { return resources_; }
-//    Entities &entities() { return entities_; }
-//
-//private:
-//    Resources resources_;
-//    Entities entities_;
-//};
 }
 
 
