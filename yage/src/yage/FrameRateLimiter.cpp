@@ -1,5 +1,4 @@
 #include "FrameRateLimiter.hpp"
-#include <cstdio>
 #include <SDL.h>
 
 namespace yage {

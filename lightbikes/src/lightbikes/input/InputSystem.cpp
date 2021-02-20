@@ -8,6 +8,9 @@ void InputSystem::setup(yage::World &world) {
     auto &inputState = world.ctx<InputState>();
     inputState.setPlayerInput(0, {Lightbike::Direction::Right});
     inputState.setPlayerInput(1, {Lightbike::Direction::Left});
+
+    // Window may not show until we consume these events
+    while (SDL_PollEvent(&event_)){};
 }
 
 void InputSystem::fixedUpdate(yage::World &world) {

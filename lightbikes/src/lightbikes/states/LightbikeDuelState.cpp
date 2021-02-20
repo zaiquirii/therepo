@@ -10,7 +10,7 @@
 
 namespace lightbikes {
 yage::World::entity_type
-createLightbike(yage::World &world, float x, float y, float speed, Lightbike::Direction dir, Uint8 *color) {
+createLightbike(yage::World &world, float x, float y, float speed, Lightbike::Direction dir, const Uint8 *color) {
     const auto lightbike = world.create();
     world.emplace<Position>(lightbike, x, y);
     world.emplace<Renderable>(lightbike, Renderable::Type::Lightbike);
@@ -82,14 +82,15 @@ void LightbikeDuelState::resetDuel(yage::World &world) {
     lightbikes_.clear();
 
     auto &config = world.ctx<AppConfig>().lightbike;
+    auto dims = config.worldDim;
     Uint8 color[]{0x00, 0xFF, 0xFF};
-    auto lightbike = createLightbike(world, 0, 0,
+    auto lightbike = createLightbike(world, dims.width * .25f, dims.height * .25f,
                                      config.bikeSpeed, Lightbike::Right,
                                      color);
     lightbikes_.push_back(lightbike);
 
     Uint8 color2[]{0xFF, 0xFF, 0x00};
-    lightbike = createLightbike(world, config.worldDim.x / 2, config.worldDim.y / 2,
+    lightbike = createLightbike(world, dims.width * .75f, dims.height * .75f,
                                 config.bikeSpeed, Lightbike::Left,
                                 color2);
     lightbikes_.push_back(lightbike);
