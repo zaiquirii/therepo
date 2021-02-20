@@ -11,6 +11,8 @@ class LightbikeDuelState : public yage::GameState {
     bool fixedUpdate(yage::World &world) override;
 
 private:
+    void resetDuel(yage::World &world);
+
     std::vector<yage::World::entity_type> lightbikes_;
 };
 }

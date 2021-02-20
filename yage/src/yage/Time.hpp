@@ -24,15 +24,15 @@ public:
     /// Do not call this outside of the engine, bad things will happen
     bool consumeFixedDelta();
 
-    float fixedDelta() const { return fixedDeltaRaw_; }
+    [[nodiscard]] float fixedDelta() const { return fixedDeltaRaw_; }
 
-    int fixedSteps() { return fixedStepCount_; }
+    [[nodiscard]] int fixedSteps() const { return fixedStepCount_; }
 
 private:
     Clock::time_point startTime_;
     Clock::time_point lastTimeSeen_;
-    Seconds delta_;
-    Seconds accumulatedTime_;
+    Seconds delta_{};
+    Seconds accumulatedTime_{};
     Seconds fixedDelta_;
     float fixedDeltaRaw_;
     int fixedStepCount_ = 0;

@@ -13,7 +13,7 @@ struct Lightbike {
 
     float speed; // Units per second
     Direction direction;
-    bool dead;
+    bool isDead;
 };
 }
 

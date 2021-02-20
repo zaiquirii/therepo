@@ -246,7 +246,7 @@ typedef union hmm_vec2
 
     struct
     {
-        float Width, Height;
+        float width, height;
     };
 
     float Elements[2];

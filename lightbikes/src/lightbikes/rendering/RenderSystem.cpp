@@ -21,7 +21,8 @@ void RenderSystem::setup(yage::World &world) {
     windowDims_ = {(float) config.window.width, (float) config.window.height};
 }
 
-void RenderSystem::fixedUpdate(yage::World &world) {
+void RenderSystem::update(yage::World &world) {
+//    void RenderSystem::fixedUpdate(yage::World &world) {
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
     SDL_RenderClear(renderer_);
 
@@ -71,7 +72,10 @@ void drawPaths(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World &worl
     SDL_FRect rect;
     float width = 1;
     for (auto [ent, path]: view.each()) {
-        for (int i = 0; i < path.points.size() - 1; i++) {
+        if (path.points.size() < 2) {
+            continue;
+        }
+        for (int i = 0; i < path.points.size() - 1; i+=2) {
             auto start = path.points[i];
             auto end = path.points[i + 1];
             if (start.x == end.x) {
@@ -90,12 +94,12 @@ void drawPaths(SDL_Renderer *renderer, yage::Mat4 &projection, yage::World &worl
                 if (end.x < start.x) {
                     rect.x = end.x;
                     rect.y = end.y;
-                    rect.w = start.x - end.x;
+                    rect.w = start.x - end.x + width;
                     rect.h = width;
                 } else {
                     rect.x = start.x;
                     rect.y = start.y;
-                    rect.w = end.x - start.x;
+                    rect.w = end.x - start.x + width;
                     rect.h = width;
                 }
             }

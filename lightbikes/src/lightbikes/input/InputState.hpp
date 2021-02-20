@@ -13,7 +13,8 @@ struct InputState {
     bool quitRequested = false;
 
     void setPlayerInput(int player, PlayerInputState inputState);
-    PlayerInputState getPlayerInput(int player) { return playerInputs_[player]; }
+
+    [[nodiscard]] PlayerInputState getPlayerInput(int player) const { return playerInputs_[player]; }
 
 private:
     std::vector<PlayerInputState> playerInputs_ = std::vector<PlayerInputState>(2);

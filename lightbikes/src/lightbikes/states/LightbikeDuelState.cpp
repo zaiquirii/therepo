@@ -9,14 +9,15 @@
 #include <SDL.h>
 
 namespace lightbikes {
-yage::World::entity_type createLightbike(yage::World &world, float x, float y, float speed, Lightbike::Direction dir) {
+yage::World::entity_type
+createLightbike(yage::World &world, float x, float y, float speed, Lightbike::Direction dir, Uint8 *color) {
     const auto lightbike = world.create();
     world.emplace<Position>(lightbike, x, y);
     world.emplace<Renderable>(lightbike, Renderable::Type::Lightbike);
     world.emplace<Lightbike>(lightbike, speed, dir);
     LightbikePath path = {
             .lastDirection = Lightbike::Direction::None,
-            .color = {0x00, 0xFF, 0x00}
+            .color = {color[0], color[1], color[2]}
     };
     world.emplace<LightbikePath>(lightbike, std::move(path));
     return lightbike;
@@ -31,23 +32,21 @@ void createCamera(yage::World &world, float width, float height) {
 void LightbikeDuelState::setup(yage::World &world) {
     auto &config = world.ctx<AppConfig>().lightbike;
     createCamera(world, config.worldDim.x, config.worldDim.y);
-
-    auto lightbike = createLightbike(world, 0, 0, config.bikeSpeed, Lightbike::Direction::Right);
-    lightbikes_.push_back(lightbike);
-
-    lightbike = createLightbike(world, config.worldDim.x / 2, config.worldDim.y / 2, config.bikeSpeed,
-                                Lightbike::Direction::Left);
-    lightbikes_.push_back(lightbike);
+    resetDuel(world);
 }
 
 bool LightbikeDuelState::fixedUpdate(yage::World &world) {
     // Get Player Input
     // Apply Input to lightbikes
     auto &input = world.ctx<InputState>();
+    bool shouldResetDuel = false;
     for (int i = 0; i < lightbikes_.size(); i++) {
         auto playerInput = input.getPlayerInput(i);
-        auto &lightbike = world.get<Lightbike>(lightbikes_[i]);
+        if (playerInput.direction == Lightbike::None) {
+            continue;
+        }
 
+        auto &lightbike = world.get<Lightbike>(lightbikes_[i]);
         bool isPlayerInputHorizontal = playerInput.direction == Lightbike::Left ||
                                        playerInput.direction == Lightbike::Right;
         bool isLightbikeDirectionHorizontal = lightbike.direction == Lightbike::Left ||
@@ -57,7 +56,42 @@ bool LightbikeDuelState::fixedUpdate(yage::World &world) {
         if (isPlayerInputHorizontal != isLightbikeDirectionHorizontal) {
             world.get<Lightbike>(lightbikes_[i]).direction = playerInput.direction;
         }
+
+        if (lightbike.isDead) {
+            shouldResetDuel = true;
+            break;
+        }
+    }
+    if (shouldResetDuel) {
+        resetDuel(world);
+
+        // TODO: This shouldn't be necessary once everything (including timers) are setup
+        for (int i = 0; i < lightbikes_.size(); i++) {
+            PlayerInputState playerInput = input.getPlayerInput(i);
+            playerInput.direction = Lightbike::None;
+            input.setPlayerInput(i, playerInput);
+        }
     }
     return !input.quitRequested;
+}
+
+void LightbikeDuelState::resetDuel(yage::World &world) {
+    for (auto ent: lightbikes_) {
+        world.destroy(ent);
+    }
+    lightbikes_.clear();
+
+    auto &config = world.ctx<AppConfig>().lightbike;
+    Uint8 color[]{0x00, 0xFF, 0xFF};
+    auto lightbike = createLightbike(world, 0, 0,
+                                     config.bikeSpeed, Lightbike::Right,
+                                     color);
+    lightbikes_.push_back(lightbike);
+
+    Uint8 color2[]{0xFF, 0xFF, 0x00};
+    lightbike = createLightbike(world, config.worldDim.x / 2, config.worldDim.y / 2,
+                                config.bikeSpeed, Lightbike::Left,
+                                color2);
+    lightbikes_.push_back(lightbike);
 }
 }

@@ -2,19 +2,17 @@
 
 namespace yage {
 
-Time::Time(Time::Seconds fixedDelta) : fixedDelta_(fixedDelta) {
-    fixedDeltaRaw_ = fixedDelta.count();
-}
+Time::Time(Time::Seconds fixedDelta)
+        : fixedDelta_(fixedDelta),
+          fixedDeltaRaw_(fixedDelta.count()) {}
 
 void Time::start() {
-    using namespace std::chrono;
-    lastTimeSeen_ = steady_clock::now();
+    lastTimeSeen_ = Clock::now();
     startTime_ = lastTimeSeen_;
 }
 
 void Time::accumulate() {
-    using namespace std::chrono;
-    auto currentTime = steady_clock::now();
+    auto currentTime = Clock::now();
     auto difference = currentTime - lastTimeSeen_;
     delta_ = Seconds(difference);
     accumulatedTime_ += delta_;

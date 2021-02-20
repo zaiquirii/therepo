@@ -7,7 +7,7 @@ void InputSystem::setup(yage::World &world) {
     world.set<InputState>();
     auto &inputState = world.ctx<InputState>();
     inputState.setPlayerInput(0, {Lightbike::Direction::Right});
-//    inputState.setPlayerInput(1, {Lightbike::Direction::Left});
+    inputState.setPlayerInput(1, {Lightbike::Direction::Left});
 }
 
 void InputSystem::fixedUpdate(yage::World &world) {
@@ -30,6 +30,18 @@ void InputSystem::fixedUpdate(yage::World &world) {
                         break;
                     case SDLK_DOWN:
                         inputState.setPlayerInput(0, {Lightbike::Direction::Down});
+                        break;
+                    case SDLK_a:
+                        inputState.setPlayerInput(1, {Lightbike::Direction::Left});
+                        break;
+                    case SDLK_d:
+                        inputState.setPlayerInput(1, {Lightbike::Direction::Right});
+                        break;
+                    case SDLK_w:
+                        inputState.setPlayerInput(1, {Lightbike::Direction::Up});
+                        break;
+                    case SDLK_s:
+                        inputState.setPlayerInput(1, {Lightbike::Direction::Down});
                         break;
                 }
                 break;

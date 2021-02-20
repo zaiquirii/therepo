@@ -30,6 +30,12 @@ void Game::run() {
     while (isRunning) {
         auto &time = world_.ctx<Time>();
         time.accumulate();
+        // TODO: This loop doesn't always terminate, lets look into why. Probably something to
+        // do with accumulation
+        float accumulatedFrames = time.accumulatedTime() / time.fixedDelta();
+        if (accumulatedFrames > 2) {
+            std::cout << "LOTS OF TIME: " << accumulatedFrames << std::endl;
+        }
         while (time.consumeFixedDelta()) {
             isRunning = currentState_->fixedUpdate(world_);
             for (auto &system: systems_) {

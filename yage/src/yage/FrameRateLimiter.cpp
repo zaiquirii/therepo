@@ -14,7 +14,7 @@ void FrameRateLimiter::delayFrame() {
         lastFramerate_ = framesSeen_ / difference.count();
         lastCheckpoint_ = currentTime;
         framesSeen_ = 0;
-        printf("FRAMERATE: %f\n", lastFramerate_);
+//        printf("FRAMERATE: %f\n", lastFramerate_);
     }
     SDL_Delay(2);
 }

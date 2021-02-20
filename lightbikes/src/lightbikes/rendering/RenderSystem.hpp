@@ -16,7 +16,7 @@ class RenderSystem : public yage::GameSystem {
 public:
     void setup(yage::World &world) override;
 
-    void fixedUpdate(yage::World &world) override;
+    void update(yage::World &world) override;
 
     void tearDown(yage::World &world) override;
 
