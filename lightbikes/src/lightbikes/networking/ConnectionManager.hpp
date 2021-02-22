@@ -1,0 +1,11 @@
+#ifndef LIGHTBIKES_CONNECTIONMANAGER_HPP
+#define LIGHTBIKES_CONNECTIONMANAGER_HPP
+
+
+namespace lightbikes {
+class ConnectionManager {
+};
+}
+
+
+#endif //LIGHTBIKES_CONNECTIONMANAGER_HPP

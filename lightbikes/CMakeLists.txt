@@ -11,7 +11,7 @@ project(lightbikes VERSION 0.1)
 
 add_subdirectory(../yage ${PROJECT_BINARY_DIR}/build_yage)
 add_executable(lightbikes
-        src/main.cpp src/lightbikes/rendering/Renderable.hpp src/lightbikes/components/Position.hpp src/lightbikes/rendering/RenderSystem.cpp src/lightbikes/rendering/RenderSystem.hpp src/lightbikes/AppConfig.hpp src/lightbikes/states/LightbikeDuelState.cpp src/lightbikes/states/LightbikeDuelState.hpp src/lightbikes/input/InputSystem.cpp src/lightbikes/input/InputSystem.hpp src/lightbikes/input/InputState.hpp src/lightbikes/rendering/Camera.hpp src/lightbikes/components/Lightbike.hpp src/lightbikes/lightbikes/systems.hpp src/lightbikes/lightbikes/systems.cpp src/lightbikes/lightbikes/DuelConfig.hpp src/lightbikes/input/InputState.cpp src/lightbikes/components/LightbikePath.hpp)
+        src/main.cpp src/lightbikes/rendering/Renderable.hpp src/lightbikes/components/Position.hpp src/lightbikes/rendering/RenderSystem.cpp src/lightbikes/rendering/RenderSystem.hpp src/lightbikes/AppConfig.hpp src/lightbikes/states/LightbikeDuelState.cpp src/lightbikes/states/LightbikeDuelState.hpp src/lightbikes/input/InputSystem.cpp src/lightbikes/input/InputSystem.hpp src/lightbikes/input/InputState.hpp src/lightbikes/rendering/Camera.hpp src/lightbikes/components/Lightbike.hpp src/lightbikes/lightbikes/systems.hpp src/lightbikes/lightbikes/systems.cpp src/lightbikes/lightbikes/DuelConfig.hpp src/lightbikes/input/InputState.cpp src/lightbikes/components/LightbikePath.hpp src/lightbikes/networking/NetworkingSystem.cpp src/lightbikes/networking/NetworkingSystem.hpp src/lightbikes/networking/ConnectionManager.cpp src/lightbikes/networking/ConnectionManager.hpp)
 
 target_include_directories(lightbikes
         PUBLIC

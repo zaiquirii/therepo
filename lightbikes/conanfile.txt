@@ -1,6 +1,7 @@
 [requires]
-yaml-cpp/0.6.3
+enet/1.3.17
 entt/3.6.0
+yaml-cpp/0.6.3
 
 [generators]
 cmake
