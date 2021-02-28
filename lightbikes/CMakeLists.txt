@@ -10,8 +10,13 @@ find_package(SDL2 REQUIRED COMPONENTS main)
 project(lightbikes VERSION 0.1)
 
 add_subdirectory(../yage ${PROJECT_BINARY_DIR}/build_yage)
+
+file(GLOB_RECURSE LIGHTBIKE_SRCS ${PROJECT_SOURCE_DIR}/src/lightbikes/*.cpp)
+file(GLOB_RECURSE LIGHTBIKE_SRCS_TEST ${PROJECT_SOURCE_DIR}/src/lightbikes/*.test.cpp)
+
 add_executable(lightbikes
-        src/main.cpp src/lightbikes/rendering/Renderable.hpp src/lightbikes/components/Position.hpp src/lightbikes/rendering/RenderSystem.cpp src/lightbikes/rendering/RenderSystem.hpp src/lightbikes/AppConfig.hpp src/lightbikes/states/LightbikeDuelState.cpp src/lightbikes/states/LightbikeDuelState.hpp src/lightbikes/input/InputSystem.cpp src/lightbikes/input/InputSystem.hpp src/lightbikes/input/InputState.hpp src/lightbikes/rendering/Camera.hpp src/lightbikes/components/Lightbike.hpp src/lightbikes/lightbikes/systems.hpp src/lightbikes/lightbikes/systems.cpp src/lightbikes/lightbikes/DuelConfig.hpp src/lightbikes/input/InputState.cpp src/lightbikes/components/LightbikePath.hpp src/lightbikes/networking/NetworkingSystem.cpp src/lightbikes/networking/NetworkingSystem.hpp src/lightbikes/networking/ConnectionManager.cpp src/lightbikes/networking/ConnectionManager.hpp)
+        src/main.cpp
+        ${LIGHTBIKE_SRCS})
 
 target_include_directories(lightbikes
         PUBLIC
@@ -29,3 +34,19 @@ add_custom_command(
         DEPENDS ${ASSET_DESTINATION}
         COMMENT "symbolic link resources folder from ${ASSET_SOURCE} => ${ASSET_DESTINATION}"
 )
+
+# TODO: Link lightbikes in as a library instead of listing all files
+
+add_executable(lightbikes_test
+        src/main_test.cpp
+        ${LIGHTBIKE_SRCS}
+        ${LIGHTBIKE_SRCS_TEST}
+        )
+
+target_include_directories(lightbikes_test
+        PUBLIC
+        src
+        ../yage/src
+        ${SDL2_INCLUDE_DIRS})
+
+target_link_libraries(lightbikes_test yage ${CONAN_LIBS})

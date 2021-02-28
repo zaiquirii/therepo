@@ -1,0 +1,12 @@
+#ifndef LIGHTBIKES_NETWORKINPUTMANAGER_HPP
+#define LIGHTBIKES_NETWORKINPUTMANAGER_HPP
+
+
+namespace lightbikes {
+class NetworkInputManager {
+
+};
+}
+
+
+#endif //LIGHTBIKES_NETWORKINPUTMANAGER_HPP

@@ -6,9 +6,12 @@
 
 namespace lightbikes {
 class NetworkingSystem : public yage::GameSystem {
+public:
+    NetworkingSystem(bool isHost);
     void setup(yage::World &world) override;
     void fixedUpdate(yage::World &world) override;
-    void tearDown(yage::World &world) override;
+private:
+    bool isHost_;
 };
 }
 

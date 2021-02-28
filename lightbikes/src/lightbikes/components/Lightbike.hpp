@@ -3,7 +3,7 @@
 
 namespace lightbikes {
 struct Lightbike {
-    enum Direction {
+    enum Direction : char {
         None,
         Left,
         Right,
