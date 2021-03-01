@@ -10,7 +10,7 @@ void NetworkingSystem::setup(yage::World &world) {
             .connectionType = isHost_ ? Host : Client,
             .port = 9000
     };
-    connectionManager.initConnection(args);
+//    connectionManager.initConnection(args);
 }
 
 void NetworkingSystem::fixedUpdate(yage::World &world) {

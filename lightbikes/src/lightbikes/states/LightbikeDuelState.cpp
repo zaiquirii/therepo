@@ -41,7 +41,7 @@ bool LightbikeDuelState::fixedUpdate(yage::World &world) {
     auto &input = world.ctx<InputState>();
     bool shouldResetDuel = false;
     for (int i = 0; i < lightbikes_.size(); i++) {
-        auto playerInput = input.getPlayerInput(i);
+        auto playerInput = input.getPlayerInput(i, 3);
         if (playerInput.direction == Lightbike::None) {
             continue;
         }
@@ -67,7 +67,7 @@ bool LightbikeDuelState::fixedUpdate(yage::World &world) {
 
         // TODO: This shouldn't be necessary once everything (including timers) are setup
         for (int i = 0; i < lightbikes_.size(); i++) {
-            PlayerInputState playerInput = input.getPlayerInput(i);
+            PlayerInputState playerInput = input.getPlayerInput(i, 0);
             playerInput.direction = Lightbike::None;
             input.setPlayerInput(i, playerInput);
         }

@@ -12,21 +12,24 @@ public:
             internalBuffer_(std::unique_ptr<Type[]>(new Type[size])),
             maxSize_(size),
             head_(0),
-            tail_(0),
             currentSize_(0) { /* empty */ }
 
     void push(Type elem) {
-        assert(currentSize_ != maxSize_);
-        internalBuffer_[head_] = elem;
+        // Move head
         head_ = (head_ + 1) % maxSize_;
-        currentSize_++;
+        internalBuffer_[head_] = elem;
+        if (currentSize_ != maxSize_) {
+            currentSize_++;
+        }
     }
 
-    Type pop() {
-        size_t oldTail = tail_;
-        tail_ = (tail_ + 1) % maxSize_;
-        currentSize_--;
-        return std::move(internalBuffer_[oldTail]);
+    /// Offset = how many elements back we should go
+    Type get(int offset) const {
+        assert(offset < currentSize_);
+        size_t index = head_ < offset
+                       ? head_ + maxSize_ - offset
+                       : head_ - offset;
+        return internalBuffer_[index];
     }
 
     size_t size() const {
@@ -39,8 +42,6 @@ private:
     std::unique_ptr<Type[]> internalBuffer_;
     /// Index where things are added
     size_t head_;
-    /// Index where things are removed
-    size_t tail_;
 };
 }
 

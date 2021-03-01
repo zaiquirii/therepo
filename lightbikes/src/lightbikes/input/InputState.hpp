@@ -2,6 +2,7 @@
 #define LIGHTBIKES_INPUTSTATE_HPP
 
 #include <lightbikes/components/Lightbike.hpp>
+#include <lightbikes/utils/RingBuffer.hpp>
 #include <vector>
 
 namespace lightbikes {
@@ -12,12 +13,13 @@ struct PlayerInputState {
 struct InputState {
     bool quitRequested = false;
 
+    InputState();
     void setPlayerInput(int player, PlayerInputState inputState);
 
-    [[nodiscard]] PlayerInputState getPlayerInput(int player) const { return playerInputs_[player]; }
+    [[nodiscard]] PlayerInputState getPlayerInput(int player, int frameOffset) const;
 
 private:
-    std::vector<PlayerInputState> playerInputs_ = std::vector<PlayerInputState>(2);
+    RingBuffer<PlayerInputState> playerInputs_[2];
 };
 
 }
