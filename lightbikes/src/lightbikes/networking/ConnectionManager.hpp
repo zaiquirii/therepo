@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <enet/enet.h>
-#include "PlayerInputPacket.hpp"
+#include "GameStatePacket.hpp"
 
 namespace lightbikes {
 enum ConnectionType {
@@ -24,13 +24,13 @@ class ConnectionManager {
 public:
     void initConnection(ConnectionArgs &args);
     ~ConnectionManager();
-//    void syncInput(PlayerInputPacket packet);
+//    void syncInput(GameStatePacket packet);
 //    void closeConnection();
 private:
     ENetEvent enetEvent_;
     ENetHost *enetHost_ = nullptr;
     ENetPeer *enetPeer_ = nullptr;
-    std::vector<PlayerInputPacket> inputBuffer_ = std::vector<PlayerInputPacket>(10);
+    std::vector<GameStatePacket> inputBuffer_ = std::vector<GameStatePacket>(10);
 };
 }
 
