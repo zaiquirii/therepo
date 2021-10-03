@@ -1,50 +1,57 @@
+mod app_state;
+mod asset_loading;
+mod components;
+mod physics;
+mod player;
+
+use bevy::input::system::exit_on_esc_system;
 use bevy::prelude::*;
 
-struct Person;
+use crate::app_state::AppState;
+use crate::player::{MainCamera, Player, ShipInput};
+use asset_loading::AssetLoadingPlugin;
+use player::{PlayerConfig, PlayerPlugin};
 
-struct Name(String);
-
-pub struct HelloPlugin;
-
-struct GreetTimer(Timer);
-
-impl Plugin for HelloPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, true)))
-            .add_startup_system(add_people.system())
-            .add_system(greet_people.system());
-    }
+fn setup_scene(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    player_config: Res<PlayerConfig>,
+) {
+    let texture_handle = asset_server.load("sprites/triangle.png");
+    commands
+        .spawn_bundle(OrthographicCameraBundle::new_2d())
+        .insert(MainCamera);
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(10.0, 11.0)),
+            material: materials.add(texture_handle.into()),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            ..Default::default()
+        })
+        .insert(ShipInput {
+            direction: Vec2::new(0.0, 0.0),
+            shot_angle: 0.0,
+            shooting: false,
+        })
+        .insert(physics::Kinematics {
+            velocity: Vec2::default(),
+            acceleration: Vec2::default(),
+            drag: player_config.drag,
+        })
+        .insert(Player);
+    println!("CREATING PLAYER");
 }
 
-fn add_people(mut commands: Commands) {
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Elaina Proctor".to_string()));
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Renzo Hume".to_string()));
 
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Zayna Nieves".to_string()));
-}
-
-fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Name, With<Person>>) {
-    // update our timer with the time elapsed since the last update
-    // if that caused the timer to finish, we say hello to everyone
-    if timer.0.tick(time.delta()).just_finished() {
-        for name in query.iter() {
-            println!("hello {}!", name.0);
-        }
-    }
-}
-sd
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_plugin(HelloPlugin)
+        .add_plugin(physics::PhysicsPlugin)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(AssetLoadingPlugin)
+        .add_state(AppState::Loading)
+        .add_system(exit_on_esc_system.system())
+        .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_scene.system()))
         .run();
 }
