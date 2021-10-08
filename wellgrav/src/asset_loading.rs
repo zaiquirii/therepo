@@ -1,5 +1,7 @@
-use crate::app_state::AppState;
-use crate::player::PlayerConfig;
+use crate::{
+    app_state::AppState,
+    resources::{GameConfig, ShipConfig, ShotConfig},
+};
 use bevy::prelude::*;
 use bevy_asset_ron::RonAssetPlugin;
 
@@ -7,7 +9,7 @@ pub struct AssetLoadingPlugin;
 
 impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(RonAssetPlugin::<PlayerConfig>::new(&["playerconfig"]))
+        app.add_plugin(RonAssetPlugin::<GameConfig>::new(&["gameconfig"]))
             .add_system_set(
                 SystemSet::on_enter(AppState::Loading).with_system(load_assets.system()),
             )
@@ -22,19 +24,23 @@ impl Plugin for AssetLoadingPlugin {
 }
 
 struct AssetHandles {
-    player_config: Handle<PlayerConfig>,
     handles: Vec<HandleUntyped>,
 }
 
 fn load_assets(mut commands: Commands, assets: Res<AssetServer>) {
     let mut handles = Vec::new();
-    let player_config: Handle<PlayerConfig> = assets.load("config/config.playerconfig");
-    handles.push(player_config.clone_untyped());
+    let configs = assets.load_folder("config").unwrap();
+    let sprites = assets.load_folder("sprites").unwrap();
 
-    let asset_handles = AssetHandles {
-        player_config,
-        handles,
-    };
+    for handle in configs {
+        handles.push(handle.clone());
+    }
+
+    for handle in sprites {
+        handles.push(handle.clone());
+    }
+
+    let asset_handles = AssetHandles { handles };
     commands.insert_resource(asset_handles);
 }
 
@@ -57,11 +63,22 @@ fn check_assets_have_loaded(
 
 fn process_assets(
     mut commands: Commands,
-    player_configs: Res<Assets<PlayerConfig>>,
-    handles: Res<AssetHandles>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    game_configs: Res<Assets<GameConfig>>,
+    assets: Res<AssetServer>,
 ) {
-    if let Some(player_config) = player_configs.get(&handles.player_config) {
-        commands.insert_resource(player_config.clone());
+    let game_config_handle: Handle<GameConfig> = assets.load("config/config.gameconfig");
+    if let Some(game_config) = game_configs.get(game_config_handle) {
+        println!("WE IN HERE");
+        commands.insert_resource(ShipConfig {
+            acceleration: game_config.ship_acceleration,
+            drag: game_config.ship_drag,
+            firerate: game_config.ship_firerate,
+        });
+        commands.insert_resource(ShotConfig {
+            speed: game_config.shot_speed,
+            material: materials.add(assets.load(game_config.shot_material.as_str()).into()),
+        });
     }
     println!("PROCESSING LOADED ASSETS");
 }

@@ -17,6 +17,7 @@ fn move_kinematics(time: Res<Time>, mut query: Query<(&mut Transform, &mut Kinem
     }
 }
 
+#[derive(Default)]
 pub struct Kinematics {
     pub velocity: Vec2,
     pub acceleration: Vec2,

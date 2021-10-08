@@ -1,0 +1,7 @@
+(
+    ship_acceleration: 10.0,
+    ship_drag: 3.0,
+    ship_firerate: 50,
+    shot_speed: 600.0,
+    shot_material: "sprites/triangle.png"
+)

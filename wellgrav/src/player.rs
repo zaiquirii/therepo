@@ -5,6 +5,8 @@ use bevy::reflect::TypeUuid;
 
 use crate::app_state::AppState;
 use crate::physics;
+use crate::ships;
+use crate::ships::ShipInput;
 
 pub struct PlayerPlugin;
 
@@ -13,27 +15,12 @@ impl Plugin for PlayerPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
                 .with_system(process_player_input.system())
-                .with_system(move_player_ship.system()),
         );
     }
 }
-
-#[derive(serde::Deserialize, TypeUuid, Debug, Copy, Clone)]
-#[uuid = "1df82c01-9c71-4fa8-adc4-78c5822268f8"]
-pub struct PlayerConfig {
-    pub acceleration: f32,
-    pub drag: f32,
-}
-
 pub struct Player;
 
 pub struct MainCamera;
-
-pub struct ShipInput {
-    pub direction: Vec2,
-    pub shot_angle: f32,
-    pub shooting: bool,
-}
 
 fn process_player_input(
     buttons: Res<Input<KeyCode>>,
@@ -71,18 +58,7 @@ fn process_player_input(
         let angle = origin_vec.angle_between(mouse_vec);
         ship_input.shot_angle = angle;
     }
-}
 
-fn move_player_ship(
-    mut query: Query<(
-        &Player,
-        &ShipInput,
-        &mut physics::Kinematics,
-        &mut Transform,
-    )>,
-) {
-    let (_player, ship_input, mut physics, mut transform) =
-        query.single_mut().expect("Only one player should exist");
-    physics.acceleration = ship_input.direction.clamp_length_max(1.0) * 1000.0;
-    transform.rotation = Quat::from_rotation_z(ship_input.shot_angle);
+    // ARE WE FIRING?
+    ship_input.shooting = mouse.pressed(MouseButton::Left);
 }
