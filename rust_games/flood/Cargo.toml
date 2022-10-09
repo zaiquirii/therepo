@@ -8,3 +8,10 @@ edition = "2021"
 [dependencies]
 bevy = "0.8.1"
 bevy_prototype_lyon = "0.6.0"
+iyes_loopless = "0.7.1"
+
+[profile.dev]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3
