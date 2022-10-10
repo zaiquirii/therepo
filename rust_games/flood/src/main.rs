@@ -54,7 +54,7 @@ fn setup_system(mut commands: Commands) {
     let mut camera_bundle = Camera2dBundle::default();
     camera_bundle.transform = camera_bundle
         .transform
-        .with_translation(Vec3::new(300.0, 300.0, 0.0));
+        .with_translation(Vec3::new(300.0, 300.0, 999.0));
     commands.spawn_bundle(camera_bundle);
     spawn_tower(&mut commands, Vec2::new(0.0, 0.0));
     spawn_tower(&mut commands, Vec2::new(20.0, 20.0));

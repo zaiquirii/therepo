@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::tasks::ComputeTaskPool;
 use bevy::utils::Duration;
 use bevy_prototype_lyon::prelude::*;
@@ -11,8 +12,14 @@ struct FloodCell {
     flood_height: f32,
 }
 
+impl FloodCell {
+    pub fn total_height(&self) -> f32 {
+        return self.ground_height + self.flood_height;
+    }
+}
+
 const OFFSETS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-const FLOOD_VISCOSITY: f32 = 0.5;
+const FLOOD_VISCOSITY: f32 = 0.7;
 const FLOOD_GRID_WIDTH: usize = 80;
 const FLOOD_GRID_HEIGHT: usize = 45;
 const GRID_CELL_SIZE: f32 = 10.0;
@@ -42,6 +49,14 @@ impl Flood {
         self.dst_grid.get_mut(x, y).flood_height = height;
     }
 
+    pub fn get_ground_height(&self, x: usize, y: usize) -> f32 {
+        self.dst_grid.get(x, y).ground_height
+    }
+
+    pub fn set_ground_height(&mut self, x: usize, y: usize, height: f32) {
+        self.dst_grid.get_mut(x, y).ground_height = height;
+    }
+
     pub fn add_flood(&mut self, x: usize, y: usize, additional_flood: f32) {
         self.dst_grid.get_mut(x, y).flood_height += additional_flood;
     }
@@ -62,6 +77,16 @@ impl Flood {
                     - only update index in dst
                     - will require double work for now (only check down and right?)
                 // SKIPPING ground height for now
+
+
+                GROUND RULES:
+                - transfer occurs based on difference
+                    - capped at flood_height of tile with greater height
+
+
+                PERMUTATIONS:
+                - S and T are same height. -> basic transfer
+                - S <
                  */
 
                 let source_tile = self.src_grid.get(x, y);
@@ -79,12 +104,20 @@ impl Flood {
                     }
 
                     let target_tile = self.src_grid.get(x_target as usize, y_target as usize);
-                    let height_difference = target_tile.flood_height - source_tile.flood_height;
-                    let change = height_difference * FLOOD_VISCOSITY * delta;
+                    let raw_difference = target_tile.total_height() - source_tile.total_height();
+                    let max_transfer = if raw_difference < 0.0 {
+                        // leaving source tile
+                        source_tile.flood_height
+                    } else {
+                        // entering source tile
+                        target_tile.flood_height
+                    };
+
+                    let change = raw_difference.min(max_transfer) * FLOOD_VISCOSITY * delta;
                     new_height += change;
                 }
 
-                self.dst_grid.get_mut(x, y).flood_height = new_height;
+                self.dst_grid.get_mut(x, y).flood_height = new_height.max(0.0);
             }
         }
     }
@@ -97,53 +130,86 @@ pub struct FloodTile {
 }
 
 #[derive(Component)]
+pub struct GroundTile {
+    x: usize,
+    y: usize,
+}
+
+#[derive(Component)]
 pub struct FloodEnt;
 
 pub fn setup_flood_demo_system(mut commands: Commands) {
-    let flood = Flood::new(FLOOD_GRID_WIDTH, FLOOD_GRID_HEIGHT);
-    commands.insert_resource(flood);
+    let mut flood = Flood::new(FLOOD_GRID_WIDTH, FLOOD_GRID_HEIGHT);
 
-    let tile_shape = shapes::Rectangle {
-        extents: Vec2::new(GRID_CELL_SIZE, GRID_CELL_SIZE),
-        origin: RectangleOrigin::Center,
-    };
+    for i in 0..20 {
+        let height = if i % 2 == 0 { 200000.0 } else { 10.0 };
+        flood.set_ground_height(25, i + 20, height);
+        flood.set_ground_height(25 - i, 20, height);
+    }
+
+    for y in 0..FLOOD_GRID_HEIGHT {
+        for x in 0..FLOOD_GRID_WIDTH {
+            let color_value = flood.get_ground_height(x, y) / 10.0;
+            let color = Color::rgb(color_value, color_value, color_value);
+            commands
+                .spawn_bundle(SpriteBundle {
+                    sprite: Sprite {
+                        color: color,
+                        custom_size: Some(Vec2::new(GRID_CELL_SIZE, GRID_CELL_SIZE)),
+                        ..default()
+                    },
+                    transform: Transform::from_xyz(
+                        x as f32 * GRID_CELL_SIZE,
+                        y as f32 * GRID_CELL_SIZE,
+                        0.0,
+                    ),
+                    ..default()
+                })
+                .insert(GroundTile { x, y });
+        }
+    }
 
     for y in 0..FLOOD_GRID_HEIGHT {
         for x in 0..FLOOD_GRID_WIDTH {
             commands
-                .spawn_bundle(GeometryBuilder::build_as(
-                    &tile_shape,
-                    DrawMode::Fill(FillMode::color(Color::WHITE)),
-                    Transform::from_xyz(x as f32 * GRID_CELL_SIZE, y as f32 * GRID_CELL_SIZE, 0.0),
-                ))
+                .spawn_bundle(SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::PURPLE,
+                        custom_size: Some(Vec2::new(GRID_CELL_SIZE, GRID_CELL_SIZE)),
+                        ..default()
+                    },
+                    transform: Transform::from_xyz(
+                        x as f32 * GRID_CELL_SIZE,
+                        y as f32 * GRID_CELL_SIZE,
+                        1.0,
+                    ),
+                    ..default()
+                })
                 .insert(FloodTile { x, y });
         }
     }
 
     spawn_spawner(&mut commands, 0, 20, 10.0, 1.0);
-    spawn_spawner(&mut commands, 20, 30, 10.0, 1.0);
+    spawn_spawner(&mut commands, 20, 30, 1000.0, 1.0);
     spawn_spawner(&mut commands, 0, 0, 30.0, 1.0);
+    commands.insert_resource(flood);
 }
 
 pub fn update_flood_system(time: Res<Time>, mut flood: ResMut<Flood>) {
     flood.step(time.delta_seconds());
 }
 
-pub fn update_flood_render_system(
-    flood: Res<Flood>,
-    mut query: Query<(&FloodTile, &mut DrawMode)>,
-) {
-    query.for_each_mut(|(tile, mut draw_mode)| {
+pub fn update_flood_render_system(flood: Res<Flood>, mut query: Query<(&FloodTile, &mut Sprite)>) {
+    query.for_each_mut(|(tile, mut sprite)| {
         let flood_height = flood.get_flood_height(tile.x, tile.y);
-        let color = Color::rgb(0.0, 0.0, flood_height);
-        *draw_mode = DrawMode::Fill(FillMode::color(color));
+        let color = Color::rgba(0.0, 0.0, 1.0, flood_height);
+        sprite.color = color;
     });
 }
 
 #[derive(Component)]
 pub struct FloodSpawner {
     discharge: f32,
-    period: f32,
     timer: Timer,
 }
 
@@ -163,12 +229,11 @@ fn spawn_spawner(commands: &mut Commands, x: usize, y: usize, discharge: f32, pe
         .spawn_bundle(GeometryBuilder::build_as(
             &shape,
             DrawMode::Fill(FillMode::color(Color::GREEN)),
-            Transform::from_xyz(x as f32 * GRID_CELL_SIZE, y as f32 * GRID_CELL_SIZE, 0.0),
+            Transform::from_xyz(x as f32 * GRID_CELL_SIZE, y as f32 * GRID_CELL_SIZE, 2.0),
         ))
         .insert(GridPosition { x, y })
         .insert(FloodSpawner {
             discharge,
-            period,
             timer: Timer::new(Duration::from_secs_f32(period), true),
         });
 }
