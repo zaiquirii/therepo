@@ -60,10 +60,10 @@ pub fn target_towers_system(
     mob_query: Query<&Transform, With<Mob>>,
     mut query: Query<(&mut Transform, &GlobalTransform), (With<Turret>, Without<Mob>)>,
 ) {
-    let mob = mob_query.single();
-    for (mut transform, global_transform) in &mut query {
-        let delta = mob.translation.xy() - global_transform.translation().xy();
-        let rotation = Vec2::X.angle_between(delta);
-        transform.rotation = Quat::from_rotation_z(rotation);
-    }
+    // let mob = mob_query.single();
+    // for (mut transform, global_transform) in &mut query {
+    //     let delta = mob.translation.xy() - global_transform.translation().xy();
+    //     let rotation = Vec2::X.angle_between(delta);
+    //     transform.rotation = Quat::from_rotation_z(rotation);
+    // }
 }

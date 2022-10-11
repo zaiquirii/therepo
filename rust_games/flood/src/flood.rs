@@ -1,32 +1,41 @@
 use bevy::prelude::*;
-use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+use bevy::render::camera::RenderTarget;
+use bevy::sprite::{Anchor, MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::tasks::ComputeTaskPool;
 use bevy::utils::Duration;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::grid::Grid;
 
-#[derive(Default, Clone, Copy)]
-struct FloodCell {
-    ground_height: f32,
-    flood_height: f32,
-}
+pub struct FixedTime;
 
-impl FloodCell {
-    pub fn total_height(&self) -> f32 {
-        return self.ground_height + self.flood_height;
+impl FixedTime {
+    pub fn fixed_delta(&self) -> f32 {
+        0.100
     }
 }
 
+#[derive(Default, Clone, Copy)]
+struct GroundCell {
+    height: f32,
+}
+
+#[derive(Default, Clone, Copy)]
+struct FloodCell {
+    height: f32,
+}
+
 const OFFSETS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-const FLOOD_VISCOSITY: f32 = 0.7;
-const FLOOD_GRID_WIDTH: usize = 80;
-const FLOOD_GRID_HEIGHT: usize = 45;
-const GRID_CELL_SIZE: f32 = 10.0;
+const FLOOD_MIN_HEIGHT: f32 = 0.01;
+const FLOOD_VISCOSITY: f32 = 0.9;
+const FLOOD_GRID_WIDTH: usize = 160;
+const FLOOD_GRID_HEIGHT: usize = 90;
+const GRID_CELL_SIZE: f32 = 1.0;
 
 pub struct Flood {
     width: usize,
     height: usize,
+    ground_grid: Grid<GroundCell>,
     src_grid: Grid<FloodCell>,
     dst_grid: Grid<FloodCell>,
 }
@@ -36,29 +45,30 @@ impl Flood {
         Flood {
             width,
             height,
+            ground_grid: Grid::new(width, height),
             src_grid: Grid::new(width, height),
             dst_grid: Grid::new(width, height),
         }
     }
 
     pub fn get_flood_height(&self, x: usize, y: usize) -> f32 {
-        self.dst_grid.get(x, y).flood_height
+        self.dst_grid.get(x, y).height
     }
 
     pub fn set_flood_height(&mut self, x: usize, y: usize, height: f32) {
-        self.dst_grid.get_mut(x, y).flood_height = height;
+        self.dst_grid.get_mut(x, y).height = height;
     }
 
     pub fn get_ground_height(&self, x: usize, y: usize) -> f32 {
-        self.dst_grid.get(x, y).ground_height
+        self.ground_grid.get(x, y).height
     }
 
     pub fn set_ground_height(&mut self, x: usize, y: usize, height: f32) {
-        self.dst_grid.get_mut(x, y).ground_height = height;
+        self.ground_grid.get_mut(x, y).height = height;
     }
 
     pub fn add_flood(&mut self, x: usize, y: usize, additional_flood: f32) {
-        self.dst_grid.get_mut(x, y).flood_height += additional_flood;
+        self.dst_grid.get_mut(x, y).height += additional_flood;
     }
 
     pub fn step(&mut self, delta: f32) {
@@ -82,15 +92,11 @@ impl Flood {
                 GROUND RULES:
                 - transfer occurs based on difference
                     - capped at flood_height of tile with greater height
-
-
-                PERMUTATIONS:
-                - S and T are same height. -> basic transfer
-                - S <
                  */
 
-                let source_tile = self.src_grid.get(x, y);
-                let mut new_height = source_tile.flood_height;
+                let source_flood = self.src_grid.get(x, y);
+                let source_ground = self.ground_grid.get(x, y);
+                let mut new_height = source_flood.height;
                 for (x_offset, y_offset) in OFFSETS {
                     let x_target = x as i32 + x_offset;
                     let y_target = y as i32 + y_offset;
@@ -103,21 +109,34 @@ impl Flood {
                         continue;
                     }
 
-                    let target_tile = self.src_grid.get(x_target as usize, y_target as usize);
-                    let raw_difference = target_tile.total_height() - source_tile.total_height();
-                    let max_transfer = if raw_difference < 0.0 {
+                    let target_flood = self.src_grid.get(x_target as usize, y_target as usize);
+                    let target_ground = self.ground_grid.get(x_target as usize, y_target as usize);
+                    let raw_difference = target_flood.height + target_ground.height
+                        - (source_flood.height + source_ground.height);
+                    let max_transfer = if raw_difference <= 0.0 {
                         // leaving source tile
-                        source_tile.flood_height
+                        source_flood.height
                     } else {
                         // entering source tile
-                        target_tile.flood_height
+                        target_flood.height
                     };
 
-                    let change = raw_difference.min(max_transfer) * FLOOD_VISCOSITY * delta;
-                    new_height += change;
+                    // Need to take the sign of transfer separately so that
+                    // transfer amounts work correctly without too many issues.
+                    let change = raw_difference.signum()
+                        * raw_difference.abs().min(max_transfer)
+                        * FLOOD_VISCOSITY
+                        * delta;
+                    if change.abs() >= FLOOD_MIN_HEIGHT {
+                        new_height += change;
+                    }
                 }
 
-                self.dst_grid.get_mut(x, y).flood_height = new_height.max(0.0);
+                new_height = new_height.max(0.0);
+                if new_height < FLOOD_MIN_HEIGHT {
+                    new_height = 0.0
+                }
+                self.dst_grid.get_mut(x, y).height = new_height;
             }
         }
     }
@@ -144,6 +163,8 @@ pub fn setup_flood_demo_system(mut commands: Commands) {
     for i in 0..20 {
         let height = if i % 2 == 0 { 200000.0 } else { 10.0 };
         flood.set_ground_height(25, i + 20, height);
+        flood.set_ground_height(26, i + 20, height);
+        flood.set_ground_height(27, i + 20, height);
         flood.set_ground_height(25 - i, 20, height);
     }
 
@@ -156,6 +177,7 @@ pub fn setup_flood_demo_system(mut commands: Commands) {
                     sprite: Sprite {
                         color: color,
                         custom_size: Some(Vec2::new(GRID_CELL_SIZE, GRID_CELL_SIZE)),
+                        anchor: Anchor::BottomLeft,
                         ..default()
                     },
                     transform: Transform::from_xyz(
@@ -176,6 +198,7 @@ pub fn setup_flood_demo_system(mut commands: Commands) {
                     sprite: Sprite {
                         color: Color::PURPLE,
                         custom_size: Some(Vec2::new(GRID_CELL_SIZE, GRID_CELL_SIZE)),
+                        anchor: Anchor::BottomLeft,
                         ..default()
                     },
                     transform: Transform::from_xyz(
@@ -193,10 +216,11 @@ pub fn setup_flood_demo_system(mut commands: Commands) {
     spawn_spawner(&mut commands, 20, 30, 1000.0, 1.0);
     spawn_spawner(&mut commands, 0, 0, 30.0, 1.0);
     commands.insert_resource(flood);
+    commands.insert_resource(MouseTimer(Timer::from_seconds(1.0, true)));
 }
 
-pub fn update_flood_system(time: Res<Time>, mut flood: ResMut<Flood>) {
-    flood.step(time.delta_seconds());
+pub fn update_flood_system(fixed_time: Res<FixedTime>, mut flood: ResMut<Flood>) {
+    flood.step(fixed_time.fixed_delta());
 }
 
 pub fn update_flood_render_system(flood: Res<Flood>, mut query: Query<(&FloodTile, &mut Sprite)>) {
@@ -221,8 +245,8 @@ pub struct GridPosition {
 
 fn spawn_spawner(commands: &mut Commands, x: usize, y: usize, discharge: f32, period: f32) {
     let shape = shapes::Rectangle {
-        extents: Vec2::new(10.0, 10.0),
-        origin: RectangleOrigin::Center,
+        extents: Vec2::new(1.0, 1.0),
+        origin: RectangleOrigin::BottomLeft,
     };
 
     commands
@@ -239,13 +263,60 @@ fn spawn_spawner(commands: &mut Commands, x: usize, y: usize, discharge: f32, pe
 }
 
 pub fn spawner_discharge_flood_system(
-    time: Res<Time>,
+    fixed_time: Res<FixedTime>,
     mut flood: ResMut<Flood>,
     mut query: Query<(&GridPosition, &mut FloodSpawner)>,
 ) {
     for (grid_position, mut spawner) in &mut query {
-        if spawner.timer.tick(time.delta()).just_finished() {
+        if spawner
+            .timer
+            .tick(Duration::from_secs_f32(fixed_time.fixed_delta()))
+            .just_finished()
+        {
             flood.add_flood(grid_position.x, grid_position.y, spawner.discharge);
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct MainCamera;
+
+pub struct MouseTimer(Timer);
+
+pub fn mouse_record_system(
+    time: Res<Time>,
+    flood: Res<Flood>,
+    windows: Res<Windows>,
+    buttons: Res<Input<MouseButton>>,
+    mut mouse_timer: ResMut<MouseTimer>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+) {
+    if mouse_timer.0.tick(time.delta()).just_finished() {
+        let (camera, camera_transform) = q_camera.single();
+        // get the window that the camera is displaying to (or the primary window)
+        let wnd = if let RenderTarget::Window(id) = camera.target {
+            windows.get(id).unwrap()
+        } else {
+            windows.get_primary().unwrap()
+        };
+
+        // check if the cursor is inside the window and get its position
+        if let Some(screen_pos) = wnd.cursor_position() {
+            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
+            let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+            let ndc_to_world =
+                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
+            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+            let world_pos: Vec2 = world_pos.truncate();
+            let grid_pos = world_pos / GRID_CELL_SIZE;
+
+            eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
+            eprintln!("Grid  coords: {}/{}", grid_pos.x, grid_pos.y);
+            eprintln!(
+                "Ground height: {}, Flood height: {}",
+                flood.get_ground_height(grid_pos.x as usize, grid_pos.y as usize),
+                flood.get_flood_height(grid_pos.x as usize, grid_pos.y as usize)
+            );
         }
     }
 }
