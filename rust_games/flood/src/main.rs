@@ -20,16 +20,16 @@ use flood::{
     update_flood_render_system, update_flood_system, FixedTime, MainCamera,
 };
 use iyes_loopless::prelude::*;
-use mobs::spawn_mob;
-use movement::movement_system;
-use towers::towers::{spawn_tower, target_towers_system};
+use towers::towers::{replenish_ammo_system, spawn_tower, target_towers_system};
 
 fn main() {
     let mut flood_fixed_update_stage = SystemStage::parallel();
     flood_fixed_update_stage
         .add_system(spawner_discharge_flood_system)
         .add_system(update_flood_system)
-        .add_system(update_flood_render_system);
+        .add_system(update_flood_render_system)
+        .add_system(target_towers_system)
+        .add_system(replenish_ammo_system);
 
     App::new()
         .insert_resource(Msaa { samples: 4 })
@@ -51,9 +51,6 @@ fn main() {
         )
         .add_startup_system(setup_system)
         .add_startup_system(setup_flood_demo_system)
-        .add_system(rotate_system)
-        .add_system(movement_system)
-        .add_system(target_towers_system)
         .add_system(mouse_record_system)
         .run();
 }
@@ -63,17 +60,13 @@ struct Rotate(f32);
 
 fn setup_system(mut commands: Commands) {
     spawn_camera(&mut commands);
-    // spawn_tower(&mut commands, Vec2::new(0.0, 0.0));
+    spawn_tower(&mut commands, Vec2::new(43.0, 30.0));
+    spawn_tower(&mut commands, Vec2::new(43.0, 33.0));
+    spawn_tower(&mut commands, Vec2::new(43.0, 35.0));
     // spawn_tower(&mut commands, Vec2::new(20.0, 20.0));
     // spawn_tower(&mut commands, Vec2::new(-30.0, -100.0));
 
     // spawn_mob(&mut commands, Vec2::new(-100.0, 0.0));
-}
-
-fn rotate_system(time: Res<Time>, mut query: Query<(&mut Transform, &Rotate)>) {
-    for (mut transform, rotate) in query.iter_mut() {
-        transform.rotate_z(time.delta_seconds() * rotate.to_radians())
-    }
 }
 
 fn spawn_camera(commands: &mut Commands) {
@@ -81,7 +74,7 @@ fn spawn_camera(commands: &mut Commands) {
     let projection = OrthographicProjection {
         far,
         depth_calculation: camera::DepthCalculation::ZDifference,
-        scaling_mode: ScalingMode::FixedVertical(45.0),
+        scaling_mode: ScalingMode::FixedVertical(90.0),
         window_origin: WindowOrigin::BottomLeft,
         ..default()
     };
@@ -94,10 +87,6 @@ fn spawn_camera(commands: &mut Commands) {
         projection.far(),
     );
 
-    // let mut camera_bundle = Camera2dBundle::default();
-    // camera_bundle.transform = camera_bundle
-    //     .transform
-    //     .with_translation(Vec3::new(300.0, 300.0, 999.0));
     commands
         .spawn_bundle(Camera2dBundle {
             camera_render_graph: CameraRenderGraph::new(core_2d::graph::NAME),

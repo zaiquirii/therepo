@@ -15,6 +15,9 @@ impl FixedTime {
     }
 }
 
+#[derive(Default, Clone, Copy, Deref, DerefMut)]
+pub struct GridPoint(IVec2);
+
 #[derive(Default, Clone, Copy)]
 struct GroundCell {
     height: f32,
@@ -71,6 +74,43 @@ impl Flood {
         self.dst_grid.get_mut(x, y).height += additional_flood;
     }
 
+    fn in_bounds(&self, x: i32, y: i32) -> bool {
+        x >= 0 && (x as usize) < self.width && y >= 0 && (y as usize) < self.height
+    }
+
+    pub fn closest_flood(&self, position: Vec2, radius: i32) -> Option<GridPoint> {
+        let target_x = position.x as i32;
+        let target_y = position.y as i32;
+
+        let mut found_flood = false;
+        let mut min_distance = 0;
+        let mut closest = IVec2::ZERO;
+
+        for test_x in target_x - radius..target_x + radius {
+            for test_y in target_y - radius..target_y + radius {
+                if !self.in_bounds(test_x, test_y) {
+                    continue;
+                }
+
+                if self.get_flood_height(test_x as usize, test_y as usize) > 0.0 {
+                    let test_distance = test_x.abs_diff(target_x) + test_y.abs_diff(target_y);
+                    if !found_flood || test_distance < min_distance {
+                        min_distance = test_distance;
+                        closest.x = test_x;
+                        closest.y = test_y;
+                        found_flood = true;
+                    }
+                }
+            }
+        }
+
+        if found_flood {
+            Some(GridPoint(closest))
+        } else {
+            None
+        }
+    }
+
     pub fn step(&mut self, delta: f32) {
         std::mem::swap(&mut self.src_grid, &mut self.dst_grid);
 
@@ -101,11 +141,7 @@ impl Flood {
                     let x_target = x as i32 + x_offset;
                     let y_target = y as i32 + y_offset;
 
-                    if x_target < 0
-                        || x_target as usize >= self.width
-                        || y_target < 0
-                        || y_target as usize >= self.height
-                    {
+                    if !self.in_bounds(x_target, y_target) {
                         continue;
                     }
 
@@ -215,6 +251,7 @@ pub fn setup_flood_demo_system(mut commands: Commands) {
     spawn_spawner(&mut commands, 0, 20, 10.0, 1.0);
     spawn_spawner(&mut commands, 20, 30, 1000.0, 1.0);
     spawn_spawner(&mut commands, 0, 0, 30.0, 1.0);
+    spawn_spawner(&mut commands, 145, 45, 4000.0, 1.0);
     commands.insert_resource(flood);
     commands.insert_resource(MouseTimer(Timer::from_seconds(1.0, true)));
 }

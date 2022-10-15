@@ -1,7 +1,57 @@
+use std::default;
+
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*};
 
-use crate::mobs::Mob;
+use crate::flood::Flood;
+
+#[derive(Component)]
+pub struct Health {
+    current: u32,
+    max: u32,
+}
+
+impl Health {
+    pub fn new(max_health: u32) -> Self {
+        Health {
+            current: max_health,
+            max: max_health,
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Ammo {
+    current: u32,
+    max: u32,
+}
+
+impl Ammo {
+    pub fn new(max_ammo: u32) -> Self {
+        Ammo {
+            current: max_ammo,
+            max: max_ammo,
+        }
+    }
+
+    pub fn reduce(&mut self, delta: u32) {
+        assert!(self.current >= delta);
+        self.current -= delta;
+    }
+
+    pub fn add(&mut self, delta: u32) {
+        self.current = (self.current + delta).min(self.max);
+    }
+
+    pub fn can_fire(&self, ammo_per_shot: u32) -> bool {
+        self.current >= ammo_per_shot
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Platform {
+    extents: UVec2,
+}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct Range(f32);
@@ -16,54 +66,130 @@ pub struct TowerBundle {
     range: Range,
 }
 
+#[derive(Component, Default)]
+pub struct TowerTargetingSystem {
+    pub range: i32,
+    pub target_selection: TargetSelection,
+    pub fire_timer: Timer,
+}
+
+impl TowerTargetingSystem {
+    pub fn new(range: i32, firerate: f32, target_selection: TargetSelection) -> Self {
+        TowerTargetingSystem {
+            range,
+            target_selection,
+            fire_timer: Timer::from_seconds(firerate, false),
+        }
+    }
+}
+
+#[derive(Default)]
+pub enum TargetSelection {
+    #[default]
+    Closest,
+    Deepest,
+}
+
 pub enum TowerType {
     Basic,
 }
 
 pub fn spawn_tower(commands: &mut Commands, position: Vec2) {
     let shape = shapes::Rectangle {
-        extents: Vec2::new(20.0, 5.0),
-        origin: RectangleOrigin::CustomCenter(Vec2::new(10.0, 0.0)),
+        extents: Vec2::new(1.0, 3.0),
+        origin: RectangleOrigin::CustomCenter(Vec2::new(0.0, 1.5)),
     };
 
     commands
         .spawn_bundle(build_tower(TowerType::Basic, position))
+        .insert(TowerTargetingSystem::new(
+            10,
+            0.01,
+            TargetSelection::Closest,
+        ))
+        .insert(Ammo::new(100))
+        .insert(Health::new(100))
+        .insert(Platform {
+            extents: UVec2::new(3, 3),
+        })
         .with_children(|parent| {
             parent
                 .spawn_bundle(GeometryBuilder::build_as(
                     &shape,
                     DrawMode::Fill(FillMode::color(Color::PINK)),
-                    Transform::from_xyz(0.0, 0.0, 0.2),
+                    Transform::from_xyz(1.5, 1.5, 4.0),
                 ))
                 .insert(Turret);
         });
 }
 
 fn build_tower(tower_type: TowerType, position: Vec2) -> TowerBundle {
-    let shape = shapes::RegularPolygon {
-        sides: 6,
-        feature: shapes::RegularPolygonFeature::Radius(20.0),
-        ..shapes::RegularPolygon::default()
+    let shape = shapes::Rectangle {
+        extents: Vec2::new(3.0, 3.0),
+        origin: RectangleOrigin::BottomLeft,
     };
 
     TowerBundle {
-        range: Range(10.0),
+        range: Range(5.0),
         shape_bundle: GeometryBuilder::build_as(
             &shape,
             DrawMode::Fill(FillMode::color(Color::ORANGE)),
-            Transform::from_xyz(position.x, position.y, 0.1),
+            Transform::from_xyz(position.x, position.y, 3.0),
         ),
     }
 }
 
+pub fn replenish_ammo_system(mut q_ammo: Query<&mut Ammo>) {
+    q_ammo.for_each_mut(|mut ammo| ammo.add(1));
+}
+
 pub fn target_towers_system(
-    mob_query: Query<&Transform, With<Mob>>,
-    mut query: Query<(&mut Transform, &GlobalTransform), (With<Turret>, Without<Mob>)>,
+    time: Res<Time>,
+    mut flood: ResMut<Flood>,
+    mut q_turrets: Query<&mut Transform, With<Turret>>,
+    mut q_towers: Query<
+        (
+            &Children,
+            &mut Transform,
+            &mut TowerTargetingSystem,
+            &mut Ammo,
+        ),
+        Without<Turret>,
+    >,
 ) {
-    // let mob = mob_query.single();
-    // for (mut transform, global_transform) in &mut query {
-    //     let delta = mob.translation.xy() - global_transform.translation().xy();
-    //     let rotation = Vec2::X.angle_between(delta);
-    //     transform.rotation = Quat::from_rotation_z(rotation);
-    // }
+    q_towers.for_each_mut(
+        |(children, mut transform, mut tower_targeting_system, mut ammo)| {
+            let range = tower_targeting_system.range;
+            let position = transform.translation.xy();
+            tower_targeting_system.fire_timer.tick(time.delta());
+            if let Some(grid_point) = flood.closest_flood(position, range) {
+                // Rotate turret
+                let delta = Vec2::new(
+                    grid_point.x as f32 - position.x,
+                    grid_point.y as f32 - position.y,
+                );
+                let rotation = Vec2::Y.angle_between(delta);
+
+                for &child in children.iter() {
+                    if let Ok(mut child_transform) = q_turrets.get_mut(child) {
+                        child_transform.rotation = Quat::from_rotation_z(rotation);
+                    }
+                }
+
+                // NOW FIRE
+                let ammo_per_shot = 5;
+                if tower_targeting_system.fire_timer.finished() && ammo.can_fire(ammo_per_shot) {
+                    tower_targeting_system.fire_timer.reset();
+                    ammo.current -= ammo_per_shot;
+                    for i in -2..2 {
+                        for j in -2..2 {
+                            let x = grid_point.x + i;
+                            let y = grid_point.y + j;
+                            flood.set_flood_height(x as usize, y as usize, 0.0);
+                        }
+                    }
+                }
+            }
+        },
+    )
 }
