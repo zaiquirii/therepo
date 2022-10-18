@@ -6,6 +6,7 @@ use bevy::utils::Duration;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::grid::Grid;
+use crate::ui;
 
 pub struct FixedTime;
 
@@ -330,23 +331,9 @@ pub fn mouse_record_system(
 ) {
     if mouse_timer.0.tick(time.delta()).just_finished() {
         let (camera, camera_transform) = q_camera.single();
-        // get the window that the camera is displaying to (or the primary window)
-        let wnd = if let RenderTarget::Window(id) = camera.target {
-            windows.get(id).unwrap()
-        } else {
-            windows.get_primary().unwrap()
-        };
-
-        // check if the cursor is inside the window and get its position
-        if let Some(screen_pos) = wnd.cursor_position() {
-            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
-            let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-            let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-            let world_pos: Vec2 = world_pos.truncate();
-            let grid_pos = world_pos / GRID_CELL_SIZE;
-
+        if let Some(pointer_info) = ui::get_pointer_info(camera, camera_transform, &windows) {
+            let world_pos = pointer_info.position.world_position;
+            let grid_pos = pointer_info.position.grid_position;
             eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
             eprintln!("Grid  coords: {}/{}", grid_pos.x, grid_pos.y);
             eprintln!(
@@ -355,5 +342,22 @@ pub fn mouse_record_system(
                 flood.get_flood_height(grid_pos.x as usize, grid_pos.y as usize)
             );
         }
+        // // get the window that the camera is displaying to (or the primary window)
+        // let wnd = if let RenderTarget::Window(id) = camera.target {
+        //     windows.get(id).unwrap()
+        // } else {
+        //     windows.get_primary().unwrap()
+        // };
+
+        // // check if the cursor is inside the window and get its position
+        // if let Some(screen_pos) = wnd.cursor_position() {
+        //     let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
+        //     let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+        //     let ndc_to_world =
+        //         camera_transform.compute_matrix() * camera.projection_matrix().inverse();
+        //     let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+        //     let world_pos: Vec2 = world_pos.truncate();
+        //     let grid_pos = world_pos / GRID_CELL_SIZE;
+        // }
     }
 }

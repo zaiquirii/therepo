@@ -3,7 +3,7 @@ use std::default;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*};
 
-use crate::flood::Flood;
+use crate::{flood::Flood, z_levels};
 
 #[derive(Component)]
 pub struct Health {
@@ -117,7 +117,7 @@ pub fn spawn_tower(commands: &mut Commands, position: Vec2) {
                 .spawn_bundle(GeometryBuilder::build_as(
                     &shape,
                     DrawMode::Fill(FillMode::color(Color::PINK)),
-                    Transform::from_xyz(1.5, 1.5, 4.0),
+                    Transform::from_xyz(1.5, 1.5, z_levels::INFRASTRUCTURE),
                 ))
                 .insert(Turret);
         });
