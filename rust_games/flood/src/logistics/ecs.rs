@@ -1,7 +1,11 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_debug_lines::DebugLines;
 
-use super::network::{Network, NodeId, NodeType};
+use super::{
+    inventory::{dispatch_orders_system, handle_packet_events, DispatchInfo},
+    network::{Network, NodeId, NodeType},
+    packets::{move_packet_system, PacketDelivered, PacketDestroyed},
+};
 
 pub struct LogisticsNodeRemoved(pub Entity);
 
@@ -14,12 +18,6 @@ impl LogisticsNode {
     pub fn new(range: f32) -> Self {
         LogisticsNode { range }
     }
-}
-
-pub struct LogisticsPlugin;
-
-impl Plugin for LogisticsPlugin {
-    fn build(&self, app: &mut App) {}
 }
 
 pub fn setup_logistics_system(mut commands: Commands) {
@@ -70,5 +68,19 @@ pub fn draw_connections_system(log_net: Res<Network>, mut lines: ResMut<DebugLin
                 }
             }
         }
+    }
+}
+
+pub struct LogisticsPlugin;
+
+impl Plugin for LogisticsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<LogisticsNodeRemoved>()
+            .add_event::<PacketDelivered>()
+            .add_event::<PacketDestroyed>()
+            .init_resource::<DispatchInfo>()
+            .add_system(dispatch_orders_system)
+            .add_system(move_packet_system)
+            .add_system(handle_packet_events);
     }
 }

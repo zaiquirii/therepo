@@ -1,19 +1,24 @@
-use bevy::{ecs::world, math::Vec3Swizzles, prelude::*};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 
 use crate::{
     flood::MainCamera,
-    logistics::ecs::{LogisticsNode, LogisticsNodeRemoved},
+    logistics::{
+        ecs::{LogisticsNode, LogisticsNodeRemoved},
+        inventory::{Producer, Receiver, Resources},
+    },
     ui, z_levels,
 };
 
 pub enum BuildingType {
+    AmmoSupplier,
     LogisticsHub,
 }
 
 pub fn spawn_infrastructure(commands: &mut Commands, building_type: BuildingType, position: Vec2) {
     match building_type {
         BuildingType::LogisticsHub => spawn_logistics_node(commands, position),
+        BuildingType::AmmoSupplier => spawn_ammo_supplier(commands, position),
     }
 }
 
@@ -29,7 +34,29 @@ fn spawn_logistics_node(commands: &mut Commands, position: Vec2) {
             DrawMode::Fill(FillMode::color(Color::YELLOW)),
             Transform::from_xyz(position.x, position.y, z_levels::INFRASTRUCTURE),
         ))
-        .insert(LogisticsNode::new(20.0));
+        .insert(LogisticsNode::new(20.0))
+        .insert(Receiver {
+            requests: Resources { ammo: 4 },
+            in_transit: Resources { ammo: 0 },
+        });
+}
+
+fn spawn_ammo_supplier(commands: &mut Commands, position: Vec2) {
+    let shape = shapes::Rectangle {
+        extents: Vec2::new(2.0, 2.0),
+        origin: RectangleOrigin::BottomLeft,
+    };
+
+    commands
+        .spawn_bundle(GeometryBuilder::build_as(
+            &shape,
+            DrawMode::Fill(FillMode::color(Color::ORANGE_RED)),
+            Transform::from_xyz(position.x, position.y, z_levels::INFRASTRUCTURE),
+        ))
+        .insert(LogisticsNode::new(20.0))
+        .insert(Producer {
+            inventory: Resources { ammo: 1000 },
+        });
 }
 
 pub fn basic_click_for_infrastructure_system(

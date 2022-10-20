@@ -24,11 +24,11 @@ use flood::{
     mouse_record_system, setup_flood_demo_system, spawner_discharge_flood_system,
     update_flood_render_system, update_flood_system, FixedTime, MainCamera,
 };
-use infrastructure::basic_click_for_infrastructure_system;
+use infrastructure::{basic_click_for_infrastructure_system, spawn_infrastructure, BuildingType};
 use iyes_loopless::prelude::*;
 use logistics::ecs::{
     draw_connections_system, setup_logistics_system, sync_new_logistics_nodes_system,
-    LogisticsNodeRemoved,
+    LogisticsNodeRemoved, LogisticsPlugin,
 };
 use towers::towers::{replenish_ammo_system, spawn_tower, target_towers_system};
 
@@ -42,7 +42,6 @@ fn main() {
         .add_system(replenish_ammo_system);
 
     App::new()
-        .add_event::<LogisticsNodeRemoved>()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(WindowDescriptor {
             title: "Flood".to_string(),
@@ -53,9 +52,10 @@ fn main() {
         .insert_resource(FixedTime)
         .add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
-        .add_plugin(LogDiagnosticsPlugin::default())
+        // .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(DebugLinesPlugin::default())
+        .add_plugin(LogisticsPlugin)
         .add_stage_before(
             CoreStage::Update,
             "flood_fixed_update",
@@ -64,7 +64,7 @@ fn main() {
         .add_startup_system(setup_system)
         .add_startup_system(setup_flood_demo_system)
         .add_startup_system(setup_logistics_system)
-        .add_system(mouse_record_system)
+        // .add_system(mouse_record_system)
         .add_system(sync_new_logistics_nodes_system)
         .add_system(basic_click_for_infrastructure_system)
         .add_system(draw_connections_system)
@@ -79,10 +79,12 @@ fn setup_system(mut commands: Commands) {
     spawn_tower(&mut commands, Vec2::new(43.0, 30.0));
     spawn_tower(&mut commands, Vec2::new(43.0, 33.0));
     spawn_tower(&mut commands, Vec2::new(43.0, 35.0));
-    // spawn_tower(&mut commands, Vec2::new(20.0, 20.0));
-    // spawn_tower(&mut commands, Vec2::new(-30.0, -100.0));
 
-    // spawn_mob(&mut commands, Vec2::new(-100.0, 0.0));
+    spawn_infrastructure(
+        &mut commands,
+        BuildingType::AmmoSupplier,
+        Vec2::new(60.0, 20.0),
+    )
 }
 
 fn spawn_camera(commands: &mut Commands) {
