@@ -5,7 +5,7 @@ use crate::{
     flood::MainCamera,
     logistics::{
         ecs::{LogisticsNode, LogisticsNodeRemoved},
-        inventory::{Producer, Receiver, Resources},
+        inventory::{EnergyConsumer, EnergySupplier},
     },
     ui, z_levels,
 };
@@ -35,10 +35,7 @@ fn spawn_logistics_node(commands: &mut Commands, position: Vec2) {
             Transform::from_xyz(position.x, position.y, z_levels::INFRASTRUCTURE),
         ))
         .insert(LogisticsNode::new(20.0))
-        .insert(Receiver {
-            requests: Resources { ammo: 4 },
-            in_transit: Resources { ammo: 0 },
-        });
+        .insert(EnergyConsumer::new(4, 1));
 }
 
 fn spawn_ammo_supplier(commands: &mut Commands, position: Vec2) {
@@ -54,9 +51,7 @@ fn spawn_ammo_supplier(commands: &mut Commands, position: Vec2) {
             Transform::from_xyz(position.x, position.y, z_levels::INFRASTRUCTURE),
         ))
         .insert(LogisticsNode::new(20.0))
-        .insert(Producer {
-            inventory: Resources { ammo: 1000 },
-        });
+        .insert(EnergySupplier::new(1000));
 }
 
 pub fn basic_click_for_infrastructure_system(

@@ -3,7 +3,11 @@ use std::default;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*};
 
-use crate::{flood::Flood, z_levels};
+use crate::{
+    flood::Flood,
+    logistics::{ecs::LogisticsNode, inventory::EnergyConsumer},
+    z_levels,
+};
 
 #[derive(Component)]
 pub struct Health {
@@ -17,34 +21,6 @@ impl Health {
             current: max_health,
             max: max_health,
         }
-    }
-}
-
-#[derive(Component)]
-pub struct Ammo {
-    current: u32,
-    max: u32,
-}
-
-impl Ammo {
-    pub fn new(max_ammo: u32) -> Self {
-        Ammo {
-            current: max_ammo,
-            max: max_ammo,
-        }
-    }
-
-    pub fn reduce(&mut self, delta: u32) {
-        assert!(self.current >= delta);
-        self.current -= delta;
-    }
-
-    pub fn add(&mut self, delta: u32) {
-        self.current = (self.current + delta).min(self.max);
-    }
-
-    pub fn can_fire(&self, ammo_per_shot: u32) -> bool {
-        self.current >= ammo_per_shot
     }
 }
 
@@ -107,11 +83,12 @@ pub fn spawn_tower(commands: &mut Commands, position: Vec2) {
             0.01,
             TargetSelection::Closest,
         ))
-        .insert(Ammo::new(100))
-        .insert(Health::new(100))
-        .insert(Platform {
-            extents: UVec2::new(3, 3),
-        })
+        .insert(LogisticsNode::new(20.0))
+        .insert(EnergyConsumer::new(10, 4))
+        // .insert(Health::new(100))
+        // .insert(Platform {
+        //     extents: UVec2::new(3, 3),
+        // })
         .with_children(|parent| {
             parent
                 .spawn_bundle(GeometryBuilder::build_as(
@@ -139,10 +116,6 @@ fn build_tower(tower_type: TowerType, position: Vec2) -> TowerBundle {
     }
 }
 
-pub fn replenish_ammo_system(mut q_ammo: Query<&mut Ammo>) {
-    q_ammo.for_each_mut(|mut ammo| ammo.add(1));
-}
-
 pub fn target_towers_system(
     time: Res<Time>,
     mut flood: ResMut<Flood>,
@@ -152,13 +125,13 @@ pub fn target_towers_system(
             &Children,
             &mut Transform,
             &mut TowerTargetingSystem,
-            &mut Ammo,
+            &mut EnergyConsumer,
         ),
         Without<Turret>,
     >,
 ) {
     q_towers.for_each_mut(
-        |(children, mut transform, mut tower_targeting_system, mut ammo)| {
+        |(children, mut transform, mut tower_targeting_system, mut energy)| {
             let range = tower_targeting_system.range;
             let position = transform.translation.xy();
             tower_targeting_system.fire_timer.tick(time.delta());
@@ -177,15 +150,17 @@ pub fn target_towers_system(
                 }
 
                 // NOW FIRE
-                let ammo_per_shot = 5;
-                if tower_targeting_system.fire_timer.finished() && ammo.can_fire(ammo_per_shot) {
-                    tower_targeting_system.fire_timer.reset();
-                    ammo.current -= ammo_per_shot;
-                    for i in -2..2 {
-                        for j in -2..2 {
-                            let x = grid_point.x + i;
-                            let y = grid_point.y + j;
-                            flood.set_flood_height(x as usize, y as usize, 0.0);
+                let charge_per_shot = 1;
+                if tower_targeting_system.fire_timer.finished() {
+                    // if converter is empty
+                    if energy.consume(charge_per_shot) {
+                        tower_targeting_system.fire_timer.reset();
+                        for i in -2..2 {
+                            for j in -2..2 {
+                                let x = grid_point.x + i;
+                                let y = grid_point.y + j;
+                                flood.set_flood_height(x as usize, y as usize, 0.0);
+                            }
                         }
                     }
                 }

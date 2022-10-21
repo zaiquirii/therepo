@@ -17,7 +17,9 @@ pub struct PacketDestroyed {
 
 #[derive(Copy, Clone)]
 pub enum ResourceType {
-    Ammo,
+    // Build,
+    // Repair,
+    Energy,
 }
 
 #[derive(Component, Copy, Clone)]

@@ -30,7 +30,7 @@ use logistics::ecs::{
     draw_connections_system, setup_logistics_system, sync_new_logistics_nodes_system,
     LogisticsNodeRemoved, LogisticsPlugin,
 };
-use towers::towers::{replenish_ammo_system, spawn_tower, target_towers_system};
+use towers::towers::{spawn_tower, target_towers_system};
 
 fn main() {
     let mut flood_fixed_update_stage = SystemStage::parallel();
@@ -38,8 +38,7 @@ fn main() {
         .add_system(spawner_discharge_flood_system)
         .add_system(update_flood_system)
         .add_system(update_flood_render_system)
-        .add_system(target_towers_system)
-        .add_system(replenish_ammo_system);
+        .add_system(target_towers_system);
 
     App::new()
         .insert_resource(Msaa { samples: 4 })
