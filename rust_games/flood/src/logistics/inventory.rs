@@ -19,6 +19,7 @@ pub struct ResourceConsumer {
     pub in_transit: u32,
     pub units_per_packet: u32,
     pub packet_remainder: u32,
+    pub last_dispatch_tick: u128,
 }
 
 impl ResourceConsumer {
@@ -29,6 +30,7 @@ impl ResourceConsumer {
             current: 0,
             in_transit: 0,
             packet_remainder: 0,
+            last_dispatch_tick: 0,
         }
     }
 
@@ -97,7 +99,7 @@ impl Default for DispatchInfo {
 }
 
 macro_rules! dispatch_resource {
-    ($commands:ident, $supplier:ident, $supplier_query:ident, $requester:ident, $requester_query:ident, $resource_type:expr) => {
+    ($commands:ident, $dispatch_tick:expr, $supplier:ident, $supplier_query:ident, $requester:ident, $requester_query:ident, $resource_type:expr) => {
         // Collect producers and receivers, filtering out those that don't need/have anything
         let mut producers: VecDeque<(Entity, Mut<$supplier>)> = VecDeque::new();
         for (entity, producer) in $supplier_query.iter_mut() {
@@ -113,6 +115,7 @@ macro_rules! dispatch_resource {
                 requesters.push((entity, requester));
             }
         }
+        requesters.sort_by(|lhs, rhs| lhs.1.last_dispatch_tick.cmp(&rhs.1.last_dispatch_tick));
 
         // Nothing to ship, exit early
         if producers.is_empty() {
@@ -121,6 +124,7 @@ macro_rules! dispatch_resource {
         let mut current_producer = producers.pop_front().unwrap();
         for mut requester in requesters {
             requester.1.in_transit += 1;
+            requester.1.last_dispatch_tick = $dispatch_tick;
             current_producer.1.inventory -= 1;
             spawn_packet(
                 &mut $commands,
@@ -154,8 +158,11 @@ pub fn dispatch_orders_system(
         return;
     }
 
+    let dispatch_tick = time.time_since_startup().as_millis();
+
     dispatch_resource!(
         commands,
+        dispatch_tick,
         EnergySupplier,
         q_energy_supplier,
         EnergyConsumer,

@@ -7,18 +7,21 @@ use crate::{
         ecs::{LogisticsNode, LogisticsNodeRemoved},
         inventory::{EnergyConsumer, EnergySupplier},
     },
+    towers::towers::spawn_tower,
     ui, z_levels,
 };
 
 pub enum BuildingType {
     AmmoSupplier,
     LogisticsHub,
+    Turret,
 }
 
 pub fn spawn_infrastructure(commands: &mut Commands, building_type: BuildingType, position: Vec2) {
     match building_type {
         BuildingType::LogisticsHub => spawn_logistics_node(commands, position),
         BuildingType::AmmoSupplier => spawn_ammo_supplier(commands, position),
+        BuildingType::Turret => spawn_tower(commands, position),
     }
 }
 
@@ -70,12 +73,12 @@ pub fn basic_click_for_infrastructure_system(
 
             for (entity, _node, transform) in q_log_nodes.iter() {
                 if (world_position - transform.translation().xy()).length() < 5.0 {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).despawn_recursive();
                     ev_log_node_removed.send(LogisticsNodeRemoved(entity));
                     return;
                 }
             }
-            spawn_infrastructure(&mut commands, BuildingType::LogisticsHub, world_position);
+            spawn_infrastructure(&mut commands, BuildingType::Turret, world_position);
         }
     }
 }
