@@ -22,6 +22,14 @@ impl PointMass {
         }
     }
 
+    pub fn pos(&self) -> Vec2 {
+        self.curr_pos
+    }
+
+    pub fn velocity(&self) -> Vec2 {
+        self.curr_pos - self.prev_pos
+    }
+
     pub fn apply_force(&mut self, impulse: Vec2) {
         self.acceleration += impulse / self.mass;
     }
@@ -39,18 +47,30 @@ impl PointMass {
     }
 }
 
+pub struct Spring {
+    pub a_index: usize,
+    pub b_index: usize,
+    pub stiffness: f32,
+    pub length: f32,
+    pub damping: f32,
+}
+
+impl Spring {}
+
 pub struct SoftBody {
     pub id: EntityId,
     pub points: Vec<PointMass>,
+    pub springs: Vec<Spring>,
     pub aabb: Aabb2,
     pub is_dynamic: bool,
 }
 
 impl SoftBody {
-    pub fn new(points: Vec<PointMass>, is_dynamic: bool) -> Self {
+    pub fn new(points: Vec<PointMass>, springs: Vec<Spring>, is_dynamic: bool) -> Self {
         Self {
             id: 0,
             points,
+            springs,
             aabb: Aabb2::zero(),
             is_dynamic,
         }
@@ -59,5 +79,6 @@ impl SoftBody {
 
 pub struct SoftBodyTemplate {
     pub points: Vec<PointMass>,
+    pub springs: Vec<(usize, usize)>,
     pub is_dynamic: bool,
 }

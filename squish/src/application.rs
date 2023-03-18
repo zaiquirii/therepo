@@ -60,7 +60,7 @@ impl Application {
                 let mut prev_pos = softbody.points[softbody.points.len() - 1].curr_pos;
                 for pointmass in &softbody.points {
                     let pos = pointmass.curr_pos;
-                    canvas.draw_line(prev_pos, pos, 0.3, wgpu::Color::BLUE);
+                    canvas.draw_line(prev_pos, pos, 0.3, wgpu::Color::WHITE);
 
                     prev_pos = pos;
                 }
@@ -76,6 +76,23 @@ impl Application {
                     wgpu::Color::RED,
                 );
             }
+
+            for spring in &softbody.springs {
+                canvas.draw_line(
+                    softbody.points[spring.a_index].pos(),
+                    softbody.points[spring.b_index].pos(),
+                    0.3,
+                    wgpu::Color::GREEN,
+                );
+            }
+
+            // canvas.draw_rectangle(
+            //     softbody.aabb.left(),
+            //     softbody.aabb.top(),
+            //     softbody.aabb.right(),
+            //     softbody.aabb.bottom(),
+            //     wgpu::Color::GREEN,
+            // );
         }
 
         match self.renderer.render(&canvas) {
