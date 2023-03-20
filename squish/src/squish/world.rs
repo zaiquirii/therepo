@@ -31,7 +31,7 @@ impl World {
                 a_index: *a_index,
                 b_index: *b_index,
                 stiffness: 20.0,
-                damping: 0.0,
+                damping: 8.0,
                 length: (points[*b_index].pos() - points[*a_index].pos()).magnitude(),
             })
             .collect();
@@ -164,12 +164,17 @@ impl World {
             for spring in &softbody.springs {
                 let a = softbody.points[spring.a_index];
                 let b = softbody.points[spring.b_index];
+
+                let force_norm = (b.pos() - a.pos()).normalize();
+
+                let damping_force = force_norm.dot(b.velocity() - a.velocity()) * spring.damping;
                 let spring_force =
                     ((b.pos() - a.pos()).magnitude() - spring.length) * spring.stiffness;
 
-                let force_norm = (b.pos() - a.pos()).normalize();
-                softbody.points[spring.a_index].apply_force(force_norm * spring_force);
-                softbody.points[spring.b_index].apply_force(force_norm * -spring_force);
+                let total_force = damping_force + spring_force;
+
+                softbody.points[spring.a_index].apply_force(force_norm * total_force);
+                softbody.points[spring.b_index].apply_force(force_norm * -total_force);
             }
         }
     }

@@ -27,7 +27,7 @@ async fn run() {
         is_dynamic: true,
     };
     world.create_softbody(&template, (0.0, 0.0).into());
-    world.create_softbody(&template, (20.0, 20.0).into());
+    // world.create_softbody(&template, (20.0, 20.0).into());
 
     world.create_softbody(
         &SoftBodyTemplate {

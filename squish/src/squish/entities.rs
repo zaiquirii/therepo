@@ -41,13 +41,15 @@ impl PointMass {
     }
 
     pub fn update_position(&mut self, delta: f32) {
+        // self.velocity += self.acceleration * delta;
+        // self.curr_pos += self.velocity * delta;
         // self.curr_pos += self.velocity * delta + 0.5 * self.acceleration * delta * delta;
         // self.velocity += self.acceleration * delta;
 
         let velocity = self.curr_pos - self.prev_pos;
         self.prev_pos = self.curr_pos;
-
         self.curr_pos = self.curr_pos + velocity + self.acceleration * delta * delta;
+        self.velocity = velocity / delta;
         // TODO: move acceleration reset here
     }
 }
