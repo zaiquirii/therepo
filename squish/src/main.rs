@@ -4,8 +4,6 @@ mod application;
 mod rendering;
 mod squish;
 
-use std::time::Duration;
-
 use log::error;
 use rendering::camera::Camera2d;
 use squish::entities::{PointMass, SoftBodyTemplate};
@@ -57,7 +55,7 @@ async fn run() {
             ref event,
             window_id,
         } if window_id == window.id() => {
-            if !application.handleInputEvent() {
+            if !application.handle_input_event() {
                 match event {
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {

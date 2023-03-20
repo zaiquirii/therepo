@@ -1,12 +1,9 @@
 use std::time::{Duration, Instant};
 
-use cgmath::Vector2;
-use log::info;
-
 use crate::{
     rendering::{
         camera::Camera2d,
-        renderer::{Canvas, RectInstance, Renderer, Vertex},
+        renderer::{Canvas, Renderer},
     },
     squish::world::World,
 };
@@ -29,7 +26,7 @@ impl Application {
             last_update: Instant::now(),
         }
     }
-    pub fn handleInputEvent(&mut self) -> bool {
+    pub fn handle_input_event(&mut self) -> bool {
         false
     }
 
@@ -40,7 +37,7 @@ impl Application {
         self.accumulated_time += delta;
 
         let target_delta = 1.0 / 60.0;
-        while (self.accumulated_time > Duration::from_secs_f32(target_delta)) {
+        while self.accumulated_time > Duration::from_secs_f32(target_delta) {
             self.step(target_delta);
             self.accumulated_time -= Duration::from_secs_f32(target_delta);
         }

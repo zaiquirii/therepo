@@ -60,12 +60,12 @@ impl World {
     }
 
     pub fn update(&mut self, delta: f32) {
-        self.clear_forces();
         self.apply_gravity();
         self.update_aabbs();
         self.solve_collisions();
         self.solve_springs();
         self.update_positions(delta);
+        self.clear_forces();
     }
 
     fn clear_forces(&mut self) {
@@ -115,8 +115,12 @@ impl World {
     }
 
     fn resolve_softbody_collisions(left: &mut SoftBody, right: &mut SoftBody) {
-        Self::resolve_softbody_points(left, right);
-        Self::resolve_softbody_points(right, left);
+        if left.is_dynamic {
+            Self::resolve_softbody_points(left, right);
+        }
+        if right.is_dynamic {
+            Self::resolve_softbody_points(right, left);
+        }
     }
 
     // Move points from left if inside of right
