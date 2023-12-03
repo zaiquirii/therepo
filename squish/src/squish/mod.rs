@@ -1,4 +1,4 @@
 pub mod entities;
 pub mod world;
 
-mod math;
+pub mod math;

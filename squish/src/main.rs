@@ -16,34 +16,6 @@ use winit::{
 async fn run() {
     let mut world = squish::world::World::new();
 
-    let template = SoftBodyTemplate {
-        points: vec![
-            PointMass::new((0.0, 0.0).into(), 1.0),
-            PointMass::new((0.0, 10.0).into(), 1.0),
-            PointMass::new((10.0, 10.0).into(), 1.0),
-            PointMass::new((10.0, 0.0).into(), 1.0),
-        ],
-        springs: vec![(0, 1), (1, 2), (2, 3), (3, 0), (0, 2), (1, 3)],
-        is_dynamic: true,
-    };
-    world.create_softbody(&template, (0.0, 0.0).into());
-    // world.create_softbody(&template, (20.0, 20.0).into());
-
-    world.create_softbody(
-        &SoftBodyTemplate {
-            points: vec![
-                PointMass::new((0.0, 0.0).into(), 1.0),
-                // PointMass::new((0.0, 40.0).into(), 1.0),
-                PointMass::new((0.0, 10.0).into(), 1.0),
-                PointMass::new((100.0, 10.0).into(), 1.0),
-                PointMass::new((100.0, 0.0).into(), 1.0),
-            ],
-            springs: Vec::new(),
-            is_dynamic: false,
-        },
-        (-40.0, -40.0).into(),
-    );
-
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let renderer = rendering::renderer::Renderer::new(&window).await;
@@ -55,7 +27,7 @@ async fn run() {
             ref event,
             window_id,
         } if window_id == window.id() => {
-            if !application.handle_input_event() {
+            if !application.handle_input_event(event) {
                 match event {
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {

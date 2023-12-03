@@ -1,33 +1,97 @@
 use std::time::{Duration, Instant};
 
+use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+
 use crate::{
     rendering::{
         camera::Camera2d,
         renderer::{Canvas, Renderer},
     },
-    squish::world::World,
+    squish::{
+        entities::{PointMass, SoftBodyTemplate},
+        math::LineSegment,
+        world::World,
+    },
 };
 pub struct Application {
     pub world: World,
     pub camera: Camera2d,
     pub renderer: Renderer,
+    count: i32,
 
     accumulated_time: Duration,
     last_update: Instant,
 }
 
 impl Application {
-    pub fn new(world: World, renderer: Renderer, camera: Camera2d) -> Self {
+    pub fn new(mut world: World, renderer: Renderer, camera: Camera2d) -> Self {
+        let template = SoftBodyTemplate {
+            points: vec![
+                PointMass::new((0.0, 0.0).into(), 1.0),
+                PointMass::new((0.0, 10.0).into(), 1.0),
+                PointMass::new((10.0, 10.0).into(), 1.0),
+                PointMass::new((10.0, 0.0).into(), 1.0),
+            ],
+            springs: vec![(0, 1), (1, 2), (2, 3), (3, 0), (0, 2), (1, 3)],
+            is_dynamic: true,
+        };
+        world.create_softbody(&template, (0.0, 0.0).into());
+        // world.create_softbody(&template, (5.0, 20.0).into());
+
+        world.create_softbody(
+            &SoftBodyTemplate {
+                points: vec![
+                    PointMass::new((0.0, 0.0).into(), 1.0),
+                    // PointMass::new((0.0, 40.0).into(), 1.0),
+                    PointMass::new((0.0, 20.0).into(), 1.0),
+                    // PointMass::new((50.0, 10.0).into(), 1.0),
+                    PointMass::new((100.0, 20.0).into(), 1.0),
+                    PointMass::new((100.0, 0.0).into(), 1.0),
+                ],
+                springs: Vec::new(),
+                is_dynamic: false,
+            },
+            (-40.0, -40.0).into(),
+        );
         Self {
             world,
             renderer,
             camera,
+            count: 0,
             accumulated_time: Duration::new(0, 0),
             last_update: Instant::now(),
         }
     }
-    pub fn handle_input_event(&mut self) -> bool {
-        false
+    pub fn handle_input_event(&mut self, event: &WindowEvent) -> bool {
+        match event {
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Space),
+                        ..
+                    },
+                ..
+            } => {
+                self.count += 1;
+                let template = SoftBodyTemplate {
+                    points: vec![
+                        PointMass::new((0.0, 0.0).into(), 1.0),
+                        PointMass::new((0.0, 10.0).into(), 1.0),
+                        PointMass::new((10.0, 10.0).into(), 1.0),
+                        PointMass::new((10.0, 0.0).into(), 1.0),
+                    ],
+                    springs: vec![(0, 1), (1, 2), (2, 3), (3, 0), (0, 2), (1, 3)],
+                    is_dynamic: true,
+                };
+                self.world.create_softbody(
+                    &template,
+                    (-10.0 + 5.0 * (self.count % 5) as f32, 40.0).into(),
+                );
+                true
+            }
+            _ => false,
+        }
     }
 
     pub fn update(&mut self) {
@@ -44,7 +108,12 @@ impl Application {
     }
 
     fn step(&mut self, delta: f32) {
-        self.world.update(delta);
+        let substeps = 1;
+        for _ in 0..substeps {
+            self.world.update(delta / substeps as f32);
+        }
+        // println!("{:?}", self.world.softbodies()[0].points[0].pos());
+        // self.world
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -54,9 +123,9 @@ impl Application {
         for softbody in self.world.softbodies() {
             // Only draw lines where there are points to connect
             if !softbody.points.len() > 1 {
-                let mut prev_pos = softbody.points[softbody.points.len() - 1].curr_pos;
+                let mut prev_pos = softbody.points[softbody.points.len() - 1].position;
                 for pointmass in &softbody.points {
-                    let pos = pointmass.curr_pos;
+                    let pos = pointmass.position;
                     canvas.draw_line(prev_pos, pos, 0.3, wgpu::Color::WHITE);
 
                     prev_pos = pos;
@@ -64,7 +133,7 @@ impl Application {
             }
 
             for pointmass in &softbody.points {
-                let pos = pointmass.curr_pos;
+                let pos = pointmass.position;
                 canvas.draw_rectangle(
                     pos.x - 0.5,
                     pos.y + 0.5,
@@ -83,6 +152,10 @@ impl Application {
                 );
             }
 
+            // for segment in segments_from_points(&softbody.points) {
+            //     canvas.draw_line(segment.start, segment.end, 0.3, wgpu::Color::BLUE)
+            // }
+
             // canvas.draw_rectangle(
             //     softbody.aabb.left(),
             //     softbody.aabb.top(),
@@ -100,4 +173,15 @@ impl Application {
             result => result,
         }
     }
+}
+
+fn segments_from_points(points: &[PointMass]) -> Vec<LineSegment> {
+    let mut segments = Vec::new();
+    for index in 0..points.len() {
+        segments.push(LineSegment::new(
+            points[index].pos(),
+            points[(index + 1) % points.len()].pos(),
+        ));
+    }
+    segments
 }

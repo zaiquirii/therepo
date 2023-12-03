@@ -6,8 +6,7 @@ pub type EntityId = u32;
 
 #[derive(Clone, Copy)]
 pub struct PointMass {
-    pub curr_pos: Vec2,
-    pub prev_pos: Vec2,
+    pub position: Vec2,
     pub velocity: Vec2,
     pub acceleration: Vec2,
     pub mass: f32,
@@ -16,8 +15,7 @@ pub struct PointMass {
 impl PointMass {
     pub fn new(position: Vec2, mass: f32) -> Self {
         Self {
-            curr_pos: position,
-            prev_pos: position,
+            position,
             velocity: Vec2::zero(),
             acceleration: Vec2::zero(),
             mass,
@@ -25,7 +23,7 @@ impl PointMass {
     }
 
     pub fn pos(&self) -> Vec2 {
-        self.curr_pos
+        self.position
     }
 
     pub fn velocity(&self) -> Vec2 {
@@ -41,15 +39,15 @@ impl PointMass {
     }
 
     pub fn update_position(&mut self, delta: f32) {
-        // self.velocity += self.acceleration * delta;
-        // self.curr_pos += self.velocity * delta;
+        self.velocity += self.acceleration * delta;
+        self.position += self.velocity * delta;
         // self.curr_pos += self.velocity * delta + 0.5 * self.acceleration * delta * delta;
         // self.velocity += self.acceleration * delta;
 
-        let velocity = self.curr_pos - self.prev_pos;
-        self.prev_pos = self.curr_pos;
-        self.curr_pos = self.curr_pos + velocity + self.acceleration * delta * delta;
-        self.velocity = velocity / delta;
+        // let velocity = self.curr_pos - self.prev_pos;
+        // self.prev_pos = self.curr_pos;
+        // self.curr_pos = self.curr_pos + velocity + self.acceleration * delta * delta;
+        // self.velocity = velocity / delta;
         // TODO: move acceleration reset here
     }
 }
