@@ -1,0 +1,311 @@
+use lazy_static::lazy_static;
+use macroquad::prelude::*;
+use macroquad::rand::rand;
+use crate::game::field::TickResult::{BlockLocked, Updated};
+use crate::game::game::CONFIG;
+
+pub enum TickResult {
+    BlockLocked,
+    Updated,
+}
+
+pub enum Rotation {
+    Left,
+    Right,
+}
+
+pub struct PlayingField {
+    pub size: UVec2,
+    pub cells: Vec<Cell>,
+    pub active_block: Option<Tetromino>,
+}
+
+impl PlayingField {
+    pub fn new(field_size: UVec2) -> Self {
+        PlayingField {
+            size: field_size,
+            cells: vec![Cell::Empty; (field_size.x * field_size.y) as usize],
+            active_block: None,
+        }
+    }
+
+    fn cell_index(&self, x: usize, y: usize) -> usize {
+        y * self.size.x as usize + x
+    }
+
+    pub fn set_cell(&mut self, x: usize, y: usize, cell: Cell) {
+        let i = self.cell_index(x, y);
+        self.cells[i] = cell
+    }
+
+    pub fn set_active_block(&mut self, block: Option<Tetromino>) {
+        self.active_block = block
+    }
+
+    pub fn tick(&mut self) -> TickResult {
+        if !self.move_active_block(IVec2::Y) {
+            self.commit_active_block();
+            return BlockLocked;
+        }
+        return Updated;
+    }
+
+    pub fn rotate_active_block(&mut self, r: Rotation) -> bool {
+        match &self.active_block {
+            None => { false }
+            Some(b) => {
+                let mut wb = b.clone();
+                wb.rot = match r {
+                    Rotation::Left => b.rot.wrapping_sub(1),
+                    Rotation::Right => b.rot + 1
+                } % b.rotation_count();
+
+                if self.can_fit_block(&wb) {
+                    self.active_block = Some(wb);
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
+
+    fn can_fit_block(&self, b: &Tetromino) -> bool {
+        let pos = b.pos;
+        for (x, y) in b.offsets() {
+            let p = pos + IVec2::new(*x, *y);
+            if p.x < 0 || p.x >= self.size.x as i32 ||
+                p.y < 0 || p.y >= self.size.y as i32 {
+                // Outside of field
+                return false;
+            }
+
+            let i = self.cell_index(p.x as usize, p.y as usize);
+            if let Cell::Filled(_) = self.cells[i] {
+                return false;
+            }
+        }
+        true
+    }
+
+    pub fn move_active_block(&mut self, delta: IVec2) -> bool {
+        match &self.active_block {
+            None => { false }
+            Some(b) => {
+                let mut wb = b.clone();
+                wb.pos += delta;
+                let can_fit = self.can_fit_block(&wb);
+                if can_fit {
+                    self.active_block = Some(wb);
+                }
+                can_fit
+            }
+        }
+    }
+
+    pub fn commit_active_block(&mut self) {
+        if let Some(b) = self.active_block {
+            for (x, y) in b.offsets() {
+                self.set_cell(
+                    (*x + b.pos.x) as usize,
+                    (*y + b.pos.y) as usize,
+                    Cell::Filled(b.color))
+            }
+        }
+    }
+
+    pub fn drop_active_block(&mut self) -> TickResult {
+        loop {
+            match self.tick() {
+                Updated => {}
+                r => { return r; }
+            }
+        }
+    }
+
+    fn ghost_block(&self, block: Tetromino) -> Tetromino {
+        let mut wb = block.clone();
+        wb.color = WHITE;
+        while self.can_fit_block(&wb) {
+            wb.pos += IVec2::Y;
+        }
+        wb.pos += IVec2::NEG_Y;
+        return wb;
+    }
+
+    pub fn render(&self) {
+        let cell_size = CONFIG.cell_size;
+        draw_rectangle(
+            0.0, 0.0,
+            cell_size * (self.size.x + 1) as f32,
+            cell_size * (self.size.y + 1) as f32,
+            GRAY,
+        );
+        draw_rectangle(
+            0.0, 0.0,
+            cell_size * self.size.x as f32,
+            cell_size * self.size.y as f32,
+            BLACK,
+        );
+
+        // Draw Active Block
+        match &self.active_block {
+            Some(b) => {
+                let ghost = self.ghost_block(b.clone());
+                render_tetromino(
+                    ghost.pos.x as f32 * cell_size,
+                    ghost.pos.y as f32 * cell_size,
+                    cell_size,
+                    &ghost,
+                );
+                render_tetromino(
+                    b.pos.x as f32 * cell_size,
+                    b.pos.y as f32 * cell_size,
+                    cell_size,
+                    b,
+                );
+            }
+            _ => {}
+        }
+
+        // Draw existing field
+        for y in 0..self.size.y as usize {
+            for x in 0..self.size.x as usize {
+                match self.cells[x + y * self.size.x as usize] {
+                    Cell::Empty => {}
+                    Cell::Filled(c) => {
+                        render_cell(
+                            x as f32 * cell_size,
+                            y as f32 * cell_size,
+                            cell_size,
+                            c,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn render_tetromino(x: f32, y: f32, cell_size: f32, t: &Tetromino) {
+    let offsets = t.offsets();
+    for (xOffset, yOffset) in offsets {
+        render_cell(
+            x + *xOffset as f32 * cell_size,
+            y + *yOffset as f32 * cell_size,
+            cell_size,
+            t.color,
+        )
+    }
+}
+
+fn render_cell(x: f32, y: f32, cell_size: f32, color: Color) {
+    draw_rectangle(x, y, cell_size, cell_size, color)
+}
+
+#[derive(Clone, Copy)]
+pub enum Cell {
+    Empty,
+    Filled(Color),
+}
+
+
+#[derive(Copy, Clone)]
+pub struct Tetromino {
+    pub pos: IVec2,
+    pub shape: Shape,
+    pub rot: usize,
+    pub color: Color,
+}
+
+impl Tetromino {
+    pub fn rotation_count(&self) -> usize {
+        return ROTATIONS[self.shape as usize].len();
+    }
+
+    pub fn offsets(&self) -> &[(i32, i32); 4] {
+        return &ROTATIONS[self.shape as usize][self.rot];
+    }
+}
+
+#[repr(usize)]
+#[derive(Copy, Clone)]
+pub enum Shape {
+    O,
+    I,
+    J,
+    L,
+    T,
+    S,
+    Z,
+}
+
+impl Shape {
+    pub fn rand() -> Shape {
+        let v = rand() % 7;
+        match v {
+            0 => Shape::O,
+            1 => Shape::I,
+            2 => Shape::J,
+            3 => Shape::L,
+            4 => Shape::T,
+            5 => Shape::S,
+            6 => Shape::Z,
+            _ => { panic!("Shouldn't get here") }
+        }
+    }
+
+    pub fn color(&self) -> Color {
+        match self {
+            Shape::O => YELLOW,
+            Shape::I => SKYBLUE,
+            Shape::J => DARKBLUE,
+            Shape::L => ORANGE,
+            Shape::T => PURPLE,
+            Shape::S => GREEN,
+            Shape::Z => RED,
+        }
+    }
+}
+
+lazy_static! {
+    static ref ROTATIONS : Vec<Vec<[(i32, i32); 4]>> = vec!(
+        // O
+        vec!([(0,0), (1, 0), (0, 1), (1, 1)]),
+        // I
+        vec!(
+            [(0,-1), (0, 0), (0, 1), (0, 2)],
+            [(-1,0), (0, 0), (1, 0), (2, 0)]
+        ),
+        // J
+        vec!(
+            [(0,-1), (0, 0), (0, 1), (-1, 1)],
+            [(-1,0), (0, 0), (1, 0), (1, 1)],
+            [(0,1), (0, 0), (0, -1), (1, -1)],
+            [(1,0), (0, 0), (-1, 0), (-1, -1)],
+        ),
+        // L
+        vec!(
+            [(0,-1), (0, 0), (0, 1), (1, 1)],
+            [(-1,0), (0, 0), (1, 0), (1, -1)],
+            [(0,1), (0, 0), (0, -1), (-1, -1)],
+            [(1,0), (0, 0), (-1, 0), (-1, 1)],
+        ),
+        // T
+        vec!(
+            [(-1,0), (0, 0), (0, -1), (0, 1)],
+            [(-1,0), (0, 0), (0, 1), (1, 0)],
+            [(0,1), (0, 0), (0, -1), (1, 0)],
+            [(-1,0), (0, 0), (0, -1), (1, 0)],
+        ),
+        // S
+        vec!(
+            [(0,-1), (0, 0), (1, 0), (1, 1)],
+            [(1,0), (0, 0), (0, 1), (-1, 1)],
+        ),
+        // Z
+        vec!(
+            [(0,-1), (0, 0), (-1, 0), (-1, 1)],
+            [(-1,0), (0, 0), (0, 1), (1, 1)],
+        ),
+    );
+}

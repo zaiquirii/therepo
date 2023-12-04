@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.4.4"
+lazy_static = { version = "1.4.0", features = [] }
