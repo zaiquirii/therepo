@@ -6,7 +6,7 @@ use crate::common;
 pub fn part_01() {
     let input = common::read_file("inputs/input_05").unwrap();
     let almanac = parse_input(input, false);
-    let closest = almanac.closest_location();
+    let closest = almanac.closest_smart();
     println!("Day 5 : Part 1 : {}", closest);
 }
 
@@ -14,7 +14,7 @@ pub fn part_02() {
     let now = Instant::now();
     let input = common::read_file("inputs/input_05").unwrap();
     let almanac = parse_input(input, true);
-    let closest = almanac.closest_para();
+    let closest = almanac.closest_para_smart();
     let elapsed = now.elapsed();
     println!("TIME: {:?}", elapsed);
     println!("Day 5 : Part 1 : {}", closest);
@@ -89,6 +89,33 @@ impl Almanac {
             .min()
             .unwrap()
     }
+
+    fn closest_smart(&self) -> i64 {
+        self.seeds
+            .iter()
+            .map(|r| {
+                let mut current_seed = r.start;
+                let mut min_location = i64::MAX;
+                while r.contains(&current_seed) {
+                    let mut target = current_seed;
+                    let mut smallest_offset = i64::MAX;
+                    for m in &self.maps {
+                        if let Some(x) = m.iter().find(|x| x.0.contains(&target)) {
+                            smallest_offset = smallest_offset.min(x.0.end - target);
+                            target += x.1;
+                        } else {
+                            smallest_offset = 1
+                        }
+                    }
+                    min_location = min_location.min(target);
+                    current_seed += smallest_offset;
+                }
+                min_location
+            })
+            .min()
+            .unwrap()
+    }
+
     fn closest_para(&self) -> i64 {
         self.seeds
             .par_iter()
@@ -106,6 +133,32 @@ impl Almanac {
                     })
                     .min()
                     .unwrap()
+            })
+            .min()
+            .unwrap()
+    }
+
+    fn closest_para_smart(&self) -> i64 {
+        self.seeds
+            .par_iter()
+            .map(|r| {
+                let mut current_seed = r.start;
+                let mut min_location = i64::MAX;
+                while r.contains(&current_seed) {
+                    let mut target = current_seed;
+                    let mut smallest_offset = i64::MAX;
+                    for m in &self.maps {
+                        if let Some(x) = m.iter().find(|x| x.0.contains(&target)) {
+                            smallest_offset = smallest_offset.min(x.0.end - target);
+                            target += x.1;
+                        } else {
+                            smallest_offset = 1
+                        }
+                    }
+                    min_location = min_location.min(target);
+                    current_seed += smallest_offset;
+                }
+                min_location
             })
             .min()
             .unwrap()
