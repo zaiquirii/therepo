@@ -1,6 +1,6 @@
 use macroquad::miniquad::CursorIcon::Default;
 use macroquad::prelude::*;
-use crate::game::field::{Cell, PlayingField, Rotation, Shape, Tetromino, TickResult};
+use crate::game::field::{Cell, FieldState, PlayingField, Rotation, Shape, Tetromino, TickResult};
 use crate::game::input::UserAction;
 
 pub struct GameConfig {
@@ -35,10 +35,17 @@ impl Game {
             last_block_drop: 0.0,
             last_user_input_time: 0.0,
         };
-        g.update_next_block();
-        g.field.active_block = Some(g.next_block);
-        g.update_next_block();
+        g.reset();
         g
+    }
+
+    fn reset(&mut self) {
+        let s = self.field.size;
+        self.field = PlayingField::new(s);
+        self.update_next_block();
+        self.field.active_block = Some(self.next_block);
+        self.update_next_block();
+
     }
 
     pub fn handle_input(&mut self) {
@@ -101,10 +108,18 @@ impl Game {
 
     pub fn update(&mut self, delta: f32) {
         self.last_block_drop += delta;
-        if self.last_block_drop >= CONFIG.block_drop_time {
-            self.last_block_drop = 0.0;
-            let r = self.field.tick();
-            self.handle_tick_result(r);
+        match self.field.state {
+            FieldState::Falling => {
+                if self.last_block_drop >= CONFIG.block_drop_time {
+                    let r = self.field.tick(delta);
+                    self.last_block_drop = 0.0;
+                    self.handle_tick_result(r);
+                }
+            }
+            FieldState::ClearingLines { .. } => {
+                let r = self.field.tick(delta);
+                self.handle_tick_result(r);
+            }
         }
     }
     fn handle_tick_result(&mut self, result: TickResult) {
@@ -113,13 +128,24 @@ impl Game {
                 self.field.set_active_block(Some(self.next_block));
                 self.update_next_block();
             }
+            TickResult::LinesCleared(_) => {
+                self.field.set_active_block(Some(self.next_block));
+                self.update_next_block();
+            }
+            TickResult::GameOver => {
+                self.reset()
+            }
             TickResult::Updated => {// DO NOTHING }
+            }
+            TickResult::ClearingLines => {
+                self.field.set_active_block(None)
             }
         }
     }
 
     fn update_next_block(&mut self) {
         let s = Shape::rand();
+        // let s = Shape::O;
         self.next_block = Tetromino {
             pos: IVec2::new((self.field.size.x / 2 - 1) as i32, 1),
             shape: s,

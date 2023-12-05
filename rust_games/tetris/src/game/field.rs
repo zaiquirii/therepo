@@ -1,11 +1,15 @@
 use lazy_static::lazy_static;
 use macroquad::prelude::*;
 use macroquad::rand::rand;
-use crate::game::field::TickResult::{BlockLocked, Updated};
+use crate::game::field::FieldState::Falling;
+use crate::game::field::TickResult::{BlockLocked, ClearingLines, GameOver, LinesCleared, Updated};
 use crate::game::game::CONFIG;
 
 pub enum TickResult {
     BlockLocked,
+    ClearingLines,
+    LinesCleared(usize),
+    GameOver,
     Updated,
 }
 
@@ -14,10 +18,21 @@ pub enum Rotation {
     Right,
 }
 
+pub enum FieldState {
+    Falling,
+    ClearingLines {
+        from: usize,
+        to: usize,
+        progress: f32,
+    },
+}
+
 pub struct PlayingField {
     pub size: UVec2,
     pub cells: Vec<Cell>,
     pub active_block: Option<Tetromino>,
+    pub clear_time: f32,
+    pub state: FieldState,
 }
 
 impl PlayingField {
@@ -26,6 +41,8 @@ impl PlayingField {
             size: field_size,
             cells: vec![Cell::Empty; (field_size.x * field_size.y) as usize],
             active_block: None,
+            clear_time: 0.2,
+            state: Falling,
         }
     }
 
@@ -42,12 +59,77 @@ impl PlayingField {
         self.active_block = block
     }
 
-    pub fn tick(&mut self) -> TickResult {
-        if !self.move_active_block(IVec2::Y) {
-            self.commit_active_block();
-            return BlockLocked;
+    pub fn tick(&mut self, delta: f32) -> TickResult {
+        match self.state {
+            Falling => {
+                // Game over check
+                if let Some(b) = self.active_block {
+                    if !self.can_fit_block(&b) {
+                        return GameOver;
+                    }
+                }
+
+                // Move Block
+                if !self.move_active_block(IVec2::Y) {
+                    self.commit_active_block();
+
+                    let lines_filled = self.check_lines();
+                    if lines_filled > 0 {
+                        return ClearingLines;
+                    } else {
+                        return BlockLocked;
+                    }
+                }
+                return Updated;
+            }
+            FieldState::ClearingLines { from, to, progress } => {
+                let new_progress = progress + delta;
+                if new_progress > self.clear_time {
+                    self.clear_lines(from, to);
+                    self.state = Falling;
+                    return LinesCleared(to - from);
+                }
+
+                self.state = FieldState::ClearingLines {
+                    from,
+                    to,
+                    progress: new_progress,
+                };
+                return ClearingLines;
+            }
         }
-        return Updated;
+    }
+
+    fn check_lines(&mut self) -> usize {
+        let lines: Vec<_> = self.cells
+            .chunks(self.size.x as usize)
+            .enumerate()
+            .filter(|(i, chunk)| {
+                chunk.iter().all(|c| matches!(c, Cell::Filled(_)))
+            })
+            .map(|(i, _)| i)
+            .collect();
+        if lines.len() > 0 {
+            self.state = FieldState::ClearingLines {
+                from: lines[0],
+                to: lines[lines.len() - 1],
+                progress: 0.0,
+            }
+        }
+        lines.len()
+    }
+
+    fn clear_lines(&mut self, from: usize, to: usize) {
+        let from_index = from * self.size.x as usize;
+        let to_index = (to + 1) * self.size.x as usize;
+        let offset = to_index - from_index;
+
+        for i in (0..from_index).rev() {
+            self.cells[i + offset] = self.cells[i];
+        }
+        for i in 0..offset {
+            self.cells[i] = Cell::Empty;
+        }
     }
 
     pub fn rotate_active_block(&mut self, r: Rotation) -> bool {
@@ -115,7 +197,7 @@ impl PlayingField {
 
     pub fn drop_active_block(&mut self) -> TickResult {
         loop {
-            match self.tick() {
+            match self.tick(0.0) {
                 Updated => {}
                 r => { return r; }
             }
@@ -156,12 +238,14 @@ impl PlayingField {
                     ghost.pos.y as f32 * cell_size,
                     cell_size,
                     &ghost,
+                    true
                 );
                 render_tetromino(
                     b.pos.x as f32 * cell_size,
                     b.pos.y as f32 * cell_size,
                     cell_size,
                     b,
+                    false
                 );
             }
             _ => {}
@@ -178,15 +262,44 @@ impl PlayingField {
                             y as f32 * cell_size,
                             cell_size,
                             c,
+                            false,
                         )
                     }
                 }
             }
         }
+
+        // Draw line clearing
+        if let FieldState::ClearingLines { from, to, progress } = self.state {
+            draw_rectangle(
+                0.0,
+                from as f32 * cell_size,
+                self.size.x as f32 * cell_size,
+                (to - from + 1) as f32 * cell_size,
+                WHITE,
+            );
+
+            let p = (progress / self.clear_time).clamp(0.0, 1.0);
+            draw_rectangle(
+                0.0,
+                from as f32 * cell_size,
+                self.size.x as f32 * cell_size * interpolate(p),
+                (to - from + 1) as f32 * cell_size,
+                BLACK,
+            );
+        }
     }
 }
 
-fn render_tetromino(x: f32, y: f32, cell_size: f32, t: &Tetromino) {
+fn interpolate(x: f32) -> f32 {
+    if x < 0.5 {
+        2.0 * x * x
+    } else {
+        1.0 - (-2.0 * x + 2.0).powi(2) / 2.0
+    }
+}
+
+fn render_tetromino(x: f32, y: f32, cell_size: f32, t: &Tetromino, outline: bool) {
     let offsets = t.offsets();
     for (xOffset, yOffset) in offsets {
         render_cell(
@@ -194,12 +307,17 @@ fn render_tetromino(x: f32, y: f32, cell_size: f32, t: &Tetromino) {
             y + *yOffset as f32 * cell_size,
             cell_size,
             t.color,
+            outline,
         )
     }
 }
 
-fn render_cell(x: f32, y: f32, cell_size: f32, color: Color) {
-    draw_rectangle(x, y, cell_size, cell_size, color)
+fn render_cell(x: f32, y: f32, cell_size: f32, color: Color, outline: bool) {
+    if outline {
+        draw_rectangle_lines(x, y, cell_size, cell_size, 2.0, color);
+    } else {
+        draw_rectangle(x, y, cell_size, cell_size, color)
+    }
 }
 
 #[derive(Clone, Copy)]
