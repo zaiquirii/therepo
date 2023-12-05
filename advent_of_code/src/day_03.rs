@@ -62,7 +62,7 @@ pub fn part_02() {
     println!("day 2 : part 2 : {}", total)
 }
 
-fn touches_symbol(mut x: usize, y: usize, mut length: usize, lines: &Vec<Vec<char>>) -> bool {
+fn touches_symbol(mut x: usize, y: usize, length: usize, lines: &Vec<Vec<char>>) -> bool {
     let mut range = length + 2;
     if x == 0 {
         range -= 1
