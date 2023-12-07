@@ -1,6 +1,5 @@
-use macroquad::miniquad::CursorIcon::Default;
 use macroquad::prelude::*;
-use crate::game::field::{Cell, FieldState, PlayingField, Rotation, Shape, Tetromino, TickResult};
+use crate::game::field::{FieldState, PlayingField, Rotation, Shape, Tetromino, TickResult};
 use crate::game::input::UserAction;
 
 pub struct GameConfig {

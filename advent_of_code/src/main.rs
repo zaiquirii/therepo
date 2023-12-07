@@ -6,9 +6,11 @@ mod common;
 mod day_03;
 mod day_04;
 mod day_05;
+mod day_06;
+mod day_07;
 
 fn main() {
-    run_day(5, 2);
+    run_day(7, 2);
 }
 
 fn run_day(day: u8, part: u8) {
@@ -23,6 +25,10 @@ fn run_day(day: u8, part: u8) {
         (4, 2) => { day_04::part_02() }
         (5, 1) => { day_05::part_01() }
         (5, 2) => { day_05::part_02() }
+        (6, 1) => { day_06::part_01() }
+        (6, 2) => { day_06::part_02() }
+        (7, 1) => { day_07::part_01() }
+        (7, 2) => { day_07::part_02() }
         _ => { panic!("NOT IMPLEMENTED") }
     }
 }

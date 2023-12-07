@@ -104,7 +104,7 @@ impl PlayingField {
         let lines: Vec<_> = self.cells
             .chunks(self.size.x as usize)
             .enumerate()
-            .filter(|(i, chunk)| {
+            .filter(|(_, chunk)| {
                 chunk.iter().all(|c| matches!(c, Cell::Filled(_)))
             })
             .map(|(i, _)| i)
@@ -301,10 +301,10 @@ fn interpolate(x: f32) -> f32 {
 
 fn render_tetromino(x: f32, y: f32, cell_size: f32, t: &Tetromino, outline: bool) {
     let offsets = t.offsets();
-    for (xOffset, yOffset) in offsets {
+    for (x_offset, y_offset) in offsets {
         render_cell(
-            x + *xOffset as f32 * cell_size,
-            y + *yOffset as f32 * cell_size,
+            x + *x_offset as f32 * cell_size,
+            y + *y_offset as f32 * cell_size,
             cell_size,
             t.color,
             outline,
