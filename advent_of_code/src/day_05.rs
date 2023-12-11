@@ -5,25 +5,26 @@ use crate::common;
 
 pub fn part_01() {
     let input = common::read_file("inputs/input_05").unwrap();
-    let almanac = parse_input(input, false);
+    let almanac = parse_input(&input, false);
     let closest = almanac.closest_location();
     println!("Day 5 : Part 1 : {}", closest);
 }
 
 pub fn part_02() {
     let now = Instant::now();
-    let input = common::read_file("inputs/input_05").unwrap();
+    let input = include_str!("../inputs/input_05");
     let almanac = parse_input(input, true);
-    println!("PARSE TIME: {:?}", now.elapsed());
+    let parse_time = now.elapsed();
     let closest = almanac.closest_smart();
     let elapsed = now.elapsed();
+    println!("PARSE TIME: {:?}", parse_time);
     println!("TIME: {:?}", elapsed);
     println!("Day 5 : Part 2 : {}", closest);
 }
 // 78µs
 
 
-fn parse_input(input: String, seeds_as_range: bool) -> Almanac {
+fn parse_input(input: &str, seeds_as_range: bool) -> Almanac {
     let mut lines = input.lines();
     let seed_parts = lines.next().unwrap()
         .split_ascii_whitespace()
