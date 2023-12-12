@@ -54,7 +54,6 @@ fn solutions(input: &str) -> (usize, usize) {
         .inspect(|c| if *c == '?' { unknowns.push(*c) })
         .collect();
     let mut steps = 0;
-    let mut ucount = unknowns.len();
     let mut memos = Vec::new();
     let sols = step(0, &mut row, &mut chunks, &mut memos, &mut steps);
 
@@ -103,8 +102,6 @@ fn step(test: usize, row: &mut Vec<char>, chunks: &mut Vec<usize>, memo: &mut Ve
             if row.iter().skip(test).all(|c| *c != '#') {
                 memo.push((test, 0, 1));
                 return 1;
-                // solutions.push(String::from_iter(row.iter()));
-                // println!("Solution: {:?} {}", row.iter().collect::<String>(), test);
             }
             memo.push((test, 0, 0));
             return 0;
@@ -112,29 +109,14 @@ fn step(test: usize, row: &mut Vec<char>, chunks: &mut Vec<usize>, memo: &mut Ve
         Some(e) => e
     };
 
-    let min_l = c_size + chunks.iter().sum::<usize>() + chunks.len();
-    if test + min_l > row.len() {
-        // print!("H");
-        chunks.push(c_size);
-        memo.push((test, chunks.len() + 1, 0));
-        return 0;
-    }
-
     let mut solutions = 0;
-    let mut i = test;
-    while i < row.len() {
+    for i in test..row.len() {
         *steps += 1;
-        if let Some(updates) = test_chunk(i, row, c_size) {
-            let new_solutions = step(i + c_size + 1, row, chunks, memo, steps);
-            solutions += new_solutions;
-            updates.iter().for_each(|i| row[*i] = '?');
+        if test_chunk(i, row, c_size) {
+            solutions += step(i + c_size + 1, row, chunks, memo, steps);
         }
 
-        if row[i] == '#' {
-            // chunk size has to be used here, no need to continue looping
-            break;
-        }
-        i += 1;
+        if row[i] == '#' { break; }
     }
 
     chunks.push(c_size);
@@ -142,50 +124,20 @@ fn step(test: usize, row: &mut Vec<char>, chunks: &mut Vec<usize>, memo: &mut Ve
     solutions
 }
 
-fn test_chunk(i: usize, row: &mut Vec<char>, c_size: usize) -> Option<Vec<usize>> {
-    if row[i] == '.' ||
-        i + c_size > row.len() {
-        return None;
+fn test_chunk(i: usize, row: &mut Vec<char>, c_size: usize) -> bool {
+    if row[i] == '.' || i + c_size > row.len() {
+        return false;
     }
-
-    let mut updates = Vec::new();
-
     // If there will be space after chunk
     if i + c_size < row.len() {
-        let t = i + c_size;
-        match row[t] {
-            '.' => {}
-            '#' => return None,
-            '?' => {
-                updates.push(t);
-                row[t] = '.';
-            }
-            _ => panic!("why"),
+        if row[i + c_size] == '#' {
+            return false;
         }
     }
-
-    let mut is_bad = false;
     for test in i..i + c_size {
-        let c = row[test];
-        match c {
-            '.' => {
-                is_bad = true;
-                break;
-            }
-            '#' => {}
-            '?' => {
-                updates.push(test);
-                row[test] = '#';
-            }
-            _ => panic!("why"),
-        };
-    };
-
-    if is_bad {
-        for i in updates.iter() {
-            row[*i] = '?';
+        if row[test] == '.' {
+            return false;
         }
-        return None;
-    }
-    return Some(updates);
+    };
+    true
 }
