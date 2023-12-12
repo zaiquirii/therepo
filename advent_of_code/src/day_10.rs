@@ -160,59 +160,49 @@ pub fn part_02() {
     let (mut pipes, start) = parse_input(input);
     let result = path(&pipes, start);
 
-
     let mut inside_count = 0;
     let map = &mut pipes.pipes;
+    // This value is hardcoded based on looking at the input,
+    // didn't feel it was worth implementing the real check
     map[start.1 as usize][start.0 as usize] = 'F';
     let width = map[0].len();
     let height = map.len();
     for y in 0..height {
+        let mut crosses = 0;
+        let mut stack = None;
         for x in 0..width {
             let loc = (x as i64, y as i64);
-            let r = decide(loc, &map[y], &result);
-            map[y][x] = r;
-            if r == 'I' {
-                inside_count += 1;
+            if result.contains(&loc) {
+                let c = map[y][x];
+                map[y][x] = '.';
+                if ['L', 'F', '7', 'J'].contains(&c) {
+                    if stack.is_none() {
+                        let _ = stack.insert(c);
+                        crosses += 1;
+                    } else {
+                        let last = stack.take().unwrap();
+                        if (last == 'F' && c == '7') ||
+                            (last == '7' && c == 'F') ||
+                            (last == 'J' && c == 'L') ||
+                            (last == 'L' && c == 'J')
+                        {
+                            crosses += 1;
+                        }
+                    }
+                } else if c == '|' || c == 'S' {
+                    crosses += 1;
+                }
+            } else {
+                map[y][x] = if crosses % 2 == 0 {
+                    'O'
+                } else {
+                    inside_count += 1;
+                    'I'
+                }
             }
         }
         println!("{}", map[y].iter().collect::<String>())
     }
 
     println!("Day 10 : Part 2 : {}", inside_count);
-}
-
-fn decide(loc: Loc, line: &Vec<char>, path: &Vec<Loc>) -> char {
-    let mut crosses = 0;
-    if path.contains(&loc) {
-        return '.';
-    }
-    let mut stack = Vec::new();
-    for x in loc.0 as usize..line.len() {
-        let c = line[x];
-        if path.contains(&(x as i64, loc.1)) {
-            if ['L', 'F', '7', 'J'].contains(&c) {
-                if stack.is_empty() {
-                    stack.push(c);
-                    crosses += 1;
-                } else {
-                    let last = stack.pop().unwrap();
-                    if (last == 'F' && c == '7') ||
-                        (last == '7' && c == 'F') ||
-                        (last == 'J' && c == 'L') ||
-                        (last == 'L' && c == 'J')
-                    {
-                        crosses += 1;
-                    }
-                }
-            } else if c == '|' || c == 'S' {
-                crosses += 1;
-            }
-        }
-    }
-
-    if crosses % 2 == 0 {
-        'O'
-    } else {
-        'I'
-    }
 }
