@@ -17,7 +17,7 @@ mod day_13;
 mod day_14;
 
 fn main() {
-    run_day(14, 1);
+    run_day(14, 2);
 }
 
 fn run_day(day: u8, part: u8) {
