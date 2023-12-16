@@ -9,13 +9,22 @@ pub fn read_file(path: &str) -> Result<String, std::io::Error> {
     Ok(contents)
 }
 
-pub struct Point<T: Add<Output=T>> {
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Point<T: Copy + Add<Output=T>> {
     pub x: T,
     pub y: T,
 }
 
-impl<T: Add<Output=T>> Point<T> {
+impl<T: Copy + Add<Output=T>> Point<T> {
     pub fn new(x: T, y: T) -> Self {
         Point { x, y }
+    }
+
+    pub fn add(&self, other: Self) -> Self {
+        Point::new(self.x + other.x, self.y + other.y)
+    }
+
+    pub fn offset(&self, x: T, y: T) -> Self {
+        Point::new(self.x + x, self.y + y)
     }
 }

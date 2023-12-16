@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::mem::swap;
+use std::ops::Rem;
 
 #[derive(Copy, Clone)]
 enum Dir {
@@ -47,19 +47,7 @@ fn move_rocks(dir: Dir, grid: &mut Vec<char>, size: usize) {
 
     'outer: for col in 0..size {
         let mut pivot = 0;
-        let mut next = 1;
         'pivot: loop {
-            // pivot = match match dir {
-            //     Dir::North | Dir::West => (pivot..size).find(|p| grid[p * size + x] == '.'),
-            //     Dir::South | Dir::East => (0..pivot).rev().find(|p| grid[p * size + x] == '.'),
-            // } {
-            //     None => continue 'outer,
-            //     Some(p) => p
-            // };
-            // pivot = match (pivot..size).find(|p| grid[p * size + x] == '.') {
-            //     None => continue 'outer,
-            //     Some(p) => p
-            // };
             pivot = match (pivot..size).find(|p| grid[index(dir, size, *p, col)] == '.') {
                 None => continue 'outer,
                 Some(p) => p
@@ -112,9 +100,21 @@ pub fn part_02() {
 
     let mut hashes: HashMap<u64, u64> = HashMap::new();
     let cycles = 1_000_000_000;
-    for cycle in 0..cycles {
+    let mut cycle = 0;
+    while cycle < cycles {
         if let Some(h) = hashes.get(&curr_hash) {
-            curr_hash = *h;
+            let mut inner_hash = *h;
+            let mut cycle_size = 1;
+            while inner_hash != curr_hash {
+                cycle_size += 1;
+                inner_hash = *hashes.get(&inner_hash).unwrap();
+            }
+            println!("CYCLE FOUND: {} {}", cycle, cycle_size);
+            let remainder = (cycles-cycle).rem(cycle_size);
+            for _ in 0..remainder {
+                curr_hash = *hashes.get(&curr_hash).unwrap();
+            }
+            break;
         } else {
             let mut new_grid = grids.get(&curr_hash).unwrap().clone();
             move_rocks(Dir::North, &mut new_grid, height);
@@ -126,10 +126,7 @@ pub fn part_02() {
             hashes.insert(curr_hash, new_hash);
             curr_hash = new_hash;
         }
-
-        if cycle % 10_000_000 == 0 {
-            println!("{} {} {}", cycle / 10_000_000, hashes.len(), curr_hash);
-        }
+        cycle += 1
     }
 
     let total = grids.get(&curr_hash).unwrap()
@@ -142,7 +139,7 @@ pub fn part_02() {
 }
 
 fn hashed(vec: &Vec<char>) -> u64 {
-    let mut hasher = DefaultHasher::new();
+    let mut hasher = DefaultHasher::default();
     vec.hash(&mut hasher);
     hasher.finish()
 }
