@@ -18,9 +18,13 @@ mod day_14;
 mod day_15;
 mod day_16;
 mod day_17;
+mod day_18;
+mod day_19;
+mod day_20;
+mod day_21;
 
 fn main() {
-    run_day(17, 1);
+    run_day(21, 2);
 }
 
 fn run_day(day: u8, part: u8) {
@@ -59,6 +63,14 @@ fn run_day(day: u8, part: u8) {
         (16, 2) => { day_16::part_02() }
         (17, 1) => { day_17::part_01() }
         (17, 2) => { day_17::part_02() }
+        (18, 1) => { day_18::part_01() }
+        (18, 2) => { day_18::part_02() }
+        (19, 1) => { day_19::part_01() }
+        (19, 2) => { day_19::part_02() }
+        (20, 1) => { day_20::part_01() }
+        (20, 2) => { day_20::part_02() }
+        (21, 1) => { day_21::part_01() }
+        (21, 2) => { day_21::part_02() }
         _ => { panic!("NOT IMPLEMENTED") }
     }
 }

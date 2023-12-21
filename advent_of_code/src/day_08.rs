@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use regex::Regex;
+use crate::common::lcm;
 
 #[derive(Debug)]
 struct Node {
@@ -71,43 +72,6 @@ fn count_moves(start: &str, directions: &str, map: &HashMap<&str, Node>) -> u64 
         }
     }
     moves
-}
-
-fn lcm(l: u64, r: u64) -> u64 {
-    let pf_l = prime_factors(l);
-    let mut pf_r = prime_factors(r);
-
-    let mut result = 1;
-    pf_l.iter().for_each(|x| {
-        result *= x;
-
-        for i in 0..pf_r.len() {
-            if pf_r[i] == *x {
-                pf_r.remove(i);
-                break;
-            }
-        }
-    });
-    pf_r.iter().for_each(|x| result *= x);
-    result
-}
-
-fn prime_factors(mut x: u64) -> Vec<u64> {
-    if x == 1 {
-        return vec![1]
-    }
-
-    let mut result = Vec::new();
-    let mut div = 2;
-    while div <= x {
-        if x % div == 0 {
-            x /= div;
-            result.push(div);
-        } else {
-            div += 1;
-        }
-    }
-    result
 }
 
 // type NodeID = usize;
