@@ -22,9 +22,10 @@ mod day_18;
 mod day_19;
 mod day_20;
 mod day_21;
+mod day_22;
 
 fn main() {
-    run_day(21, 2);
+    run_day(22, 1);
 }
 
 fn run_day(day: u8, part: u8) {
@@ -71,6 +72,8 @@ fn run_day(day: u8, part: u8) {
         (20, 2) => { day_20::part_02() }
         (21, 1) => { day_21::part_01() }
         (21, 2) => { day_21::part_02() }
+        (22, 1) => { day_22::part_01() }
+        (22, 2) => { day_22::part_02() }
         _ => { panic!("NOT IMPLEMENTED") }
     }
 }
