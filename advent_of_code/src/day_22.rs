@@ -1,13 +1,11 @@
+use std::collections::{HashMap, HashSet};
+use std::time::Instant;
 use crate::common::Point;
 
 pub fn part_01() {
     let input = include_str!("../inputs/input_22");
     let (footprint, mut blocks) = parse_input(input);
     compress_blocks(footprint, &mut blocks);
-    for b in &blocks {
-        println!("Block: {:?}", b);
-    }
-
     let total = (0..blocks.len())
         .filter(|b| can_disintegrate(&blocks, *b))
         .count();
@@ -40,7 +38,7 @@ struct Block {
 
 fn parse_input(input: &str) -> (Point<u32>, Vec<Block>) {
     let mut footprint = Point::new(0, 0);
-    let mut blocks = input.lines()
+    let blocks = input.lines()
         .map(|l| {
             let mut parts = l.split("~");
             let start = Coord::new(parts.next().unwrap());
@@ -86,13 +84,13 @@ fn can_disintegrate(blocks: &Vec<Block>, index: usize) -> bool {
 }
 
 fn get_children(blocks: &Vec<Block>, index: usize) -> Vec<usize> {
-    (0..blocks.len())
+    (index + 1..blocks.len())
         .filter(|i| supports(blocks, index, *i))
         .collect()
 }
 
 fn get_parents(blocks: &Vec<Block>, index: usize) -> Vec<usize> {
-    (0..blocks.len())
+    (0..index)
         .filter(|i| supports(blocks, *i, index))
         .collect()
 }
@@ -101,18 +99,72 @@ fn supports(blocks: &Vec<Block>, under_i: usize, over_i: usize) -> bool {
     let under = &blocks[under_i];
     let over = &blocks[over_i];
 
-    if under.end.z >= over.start.z || over.start.z - under.end.z != 1 {
+    if over.start.z - under.end.z != 1 {
         return false;
     }
     intersects(under.start.x, under.end.x, over.start.x, over.end.x) &&
         intersects(under.start.y, under.end.y, over.start.y, over.end.y)
 }
 
+#[inline]
 fn intersects(s0: u32, e0: u32, s1: u32, e1: u32) -> bool {
-    if e0 < s1 || e1 < s0 {
-        return false;
-    }
-    return true;
+    e0 >= s1 && e1 >= s0
 }
 
-pub fn part_02() {}
+pub fn part_02() {
+    let input = include_str!("../inputs/input_22");
+    let (footprint, mut blocks) = parse_input(input);
+    compress_blocks(footprint, &mut blocks);
+    let start = Instant::now();
+    let mut graph = Graph {
+        blocks,
+        ..Graph::default()
+    };
+    let total = graph.part_2();
+    let elapsed = start.elapsed();
+    println!("Day 22 : Part 2 : {} {:?}", total, elapsed)
+}
+
+#[derive(Default)]
+struct Graph {
+    blocks: Vec<Block>,
+    parents: HashMap<usize, Vec<usize>>,
+    children: HashMap<usize, Vec<usize>>,
+}
+
+impl Graph {
+    fn part_2(&mut self) -> usize {
+        (0..self.blocks.len())
+            .map(|i| self.blocks_to_fall(i))
+            .sum::<usize>()
+    }
+
+    fn blocks_to_fall(&mut self, block_i: usize) -> usize {
+        let mut falling = HashSet::new();
+        falling.insert(block_i);
+
+        let mut to_visit = Vec::new();
+        let children = self.get_children(block_i);
+        children.iter().for_each(|c| to_visit.push(*c));
+
+        while let Some(curr_i) = to_visit.pop() {
+            if self.get_parents(curr_i).iter().all(|p| falling.contains(p)) {
+                falling.insert(curr_i);
+                self.get_children(curr_i).iter().for_each(|c| to_visit.push(*c))
+            }
+        }
+        falling.len() - 1
+    }
+
+    fn get_parents(&mut self, block_i: usize) -> &Vec<usize> {
+        self.parents.entry(block_i)
+            .or_insert_with(|| {
+                get_parents(&self.blocks, block_i)
+            })
+    }
+
+    fn get_children(&mut self, block_i: usize) -> &Vec<usize> {
+        self.children.entry(block_i)
+            .or_insert_with(|| get_children(&self.blocks, block_i))
+    }
+}

@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use crate::common::Point;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

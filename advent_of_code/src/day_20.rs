@@ -1,7 +1,5 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Formatter};
-use std::{io, iter};
-use std::io::Write;
 use crate::common::lcm;
 
 #[derive(Debug)]

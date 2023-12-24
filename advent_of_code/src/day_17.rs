@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap};
 use crate::common::Point;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
