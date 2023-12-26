@@ -1,4 +1,5 @@
-use crate::synacorvm::operations::{Operand, Operation, UnknownOpcode};
+use crate::synacorvm::operations;
+use crate::synacorvm::operations::{Operand, Operation};
 use crate::synacorvm::storage::{Memory, Stack};
 
 pub struct VirtualMachine {
@@ -31,7 +32,7 @@ impl VirtualMachine {
         println!("Success");
     }
 
-    pub fn run(&mut self) -> Result<(), UnknownOpcode> {
+    pub fn run(&mut self) -> operations::Result<()> {
         self.instruction_counter = 0;
         self.running = true;
         while self.running {
@@ -40,28 +41,55 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn step(&mut self) -> Result<(), UnknownOpcode> {
+    pub fn step(&mut self) -> operations::Result<()> {
         // Load operation
         // Execute operation
+        let mut jumped = false;
         let op_start = self.memory.start_at(self.instruction_counter);
         let op = Operation::from(op_start)?;
-        match op {
+        match &op {
             Operation::Halt => {
                 println!("Shutting down");
                 self.running = false
             }
-            Operation::Out { ref src } => {
-                let c = match src {
-                    Operand::Literal { value } => {
-                        char::from_u32(*value as u32).expect("This should be a valid ascii value")
-                    }
-                };
-                print!("{}", c);
+            Operation::Jmp { tgt } => {
+                jumped = true;
+                self.jump_to(tgt)
             }
-            Operation::Noop => {}
+            Operation::Jt { src, tgt } => {
+                if self.value_of(src) != 0 {
+                    jumped = true;
+                    self.jump_to(tgt);
+                }
+            }
+            Operation::Jf { src, tgt } => {
+                if self.value_of(src) == 0 {
+                    jumped = true;
+                    self.jump_to(tgt);
+                }
+            }
+            Operation::Out { src } => {
+                let c = self.value_of(src);
+                let o = char::from_u32(c as u32)
+                    .expect("This should be a valid ascii value");
+                print!("{}", o);
+            }
+            Operation::Noop => { /* Do Nothing */ }
         }
-        self.instruction_counter += op.instr_len();
+        if !jumped {
+            self.instruction_counter += op.instr_len();
+        }
         Ok(())
+    }
+
+    fn value_of(&self, src: &Operand) -> u16 {
+        match src {
+            Operand::Literal { value } => { *value }
+        }
+    }
+
+    fn jump_to(&mut self, target: &Operand) {
+        self.instruction_counter = self.value_of(target) as usize;
     }
 
     fn incr_instruction(&mut self) {
