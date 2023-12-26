@@ -8,7 +8,7 @@ pub struct VirtualMachine {
     instruction_counter: usize,
     running: bool,
     registers: [u16; 8],
-    memory: Memory,
+    memory: Vec<u16>,
     stack: Vec<u16>,
     input: VecDeque<u16>,
 }
@@ -25,7 +25,7 @@ impl VirtualMachine {
             instruction_counter: 0,
             registers: [0; 8],
             running: false,
-            memory: Memory::new(memory),
+            memory: vec![0; memory],
             stack: Vec::new(),
             input: VecDeque::new(),
         }
@@ -34,7 +34,11 @@ impl VirtualMachine {
     pub fn load_program_from_bytes(&mut self, data: &[u8]) {
         assert_eq!(data.len() % 2, 0);
         println!("Loading program bytes: {}", data.len());
-        self.memory.push_program_bytes(data);
+        let mut i = 0;
+        while i * 2 < data.len() {
+            self.memory[i] = as_u16_le(&data[i * 2..i * 2 + 2]);
+            i += 1;
+        }
         println!("Success");
     }
 
@@ -51,8 +55,7 @@ impl VirtualMachine {
         // Load operation
         // Execute operation
         let mut jumped = false;
-        let op_start = self.memory.start_at(self.instruction_counter);
-        let op = Operation::from(op_start)?;
+        let op = Operation::from(&self.memory[self.instruction_counter..])?;
         match &op {
             Operation::Halt => {
                 println!("Shutting down");
@@ -118,13 +121,13 @@ impl VirtualMachine {
             }
             Operation::Rmem { dst, src } => {
                 let addr = self.value_of(src);
-                let val = self.memory.get(addr);
+                let val = self.memory[addr as usize];
                 self.set_register(dst, val);
             }
             Operation::Wmem { dst, src } => {
                 let val = self.value_of(src);
                 let addr = self.value_of(dst);
-                self.memory.set(addr, val);
+                self.memory[addr as usize] = val;
             }
             Operation::Call { tgt } => {
                 self.push_stack(self.instruction_counter as u16 + 2);
@@ -203,4 +206,8 @@ impl VirtualMachine {
         buffer.bytes().for_each(|b| self.input.push_back(b as u16));
         self.input.pop_front().expect("Input should not be empty")
     }
+}
+
+fn as_u16_le(data: &[u8]) -> u16 {
+    data[0] as u16 | ((data[1] as u16) << 8)
 }
