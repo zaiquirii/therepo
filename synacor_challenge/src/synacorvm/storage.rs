@@ -3,16 +3,6 @@ pub struct Memory {
 }
 
 impl Memory {
-    pub(crate) fn push_program_bytes(&mut self, program: &[u8]) {
-        let mut i = 0;
-        while i * 2 < program.len() {
-            self.data[i] = as_u16_le(&program[i * 2..i * 2 + 2]);
-            i += 1;
-        }
-    }
-}
-
-impl Memory {
     pub fn new(size: usize) -> Self {
         Self {
             data: vec![0; size]
@@ -23,9 +13,21 @@ impl Memory {
         &self.data[index..]
     }
 
-    // pub fn raw(&mut self) -> &Vec<u16> { &self.data }
-    //
-    // pub fn raw_mut(&mut self) -> &mut Vec<u16> { &mut self.data }
+    pub(crate) fn push_program_bytes(&mut self, program: &[u8]) {
+        let mut i = 0;
+        while i * 2 < program.len() {
+            self.data[i] = as_u16_le(&program[i * 2..i * 2 + 2]);
+            i += 1;
+        }
+    }
+
+    pub fn get(&self, addr: u16) -> u16 {
+        self.data[addr as usize]
+    }
+
+    pub fn set(&mut self, addr: u16, value: u16) {
+        self.data[addr as usize] = value
+    }
 }
 
 pub struct Stack {

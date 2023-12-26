@@ -32,8 +32,11 @@ Status:
 - 0e6aa7be1f68d930926d72b3741a145c
   - Got this one by implementing opcodes 0, 19, 21
 - 7997a3b2941eab92c1c0345d5747b420
+  - Got this one after implementing all opcodes except for 20
 - 186f842951c0dcfe8838af1e7222b7d4
+  - Got this one after implementing opcode In and starting the game
 - 2bf84e54b95ce97aefd9fc920451fc45
+  - 
 - e09640936b3ef532b7b8e83ce8f125f4
 - 4873cf6b76f62ac7d5a53605b2535a0c
 - d0c54d4ed7f943280ce3e19532dbb1a6
