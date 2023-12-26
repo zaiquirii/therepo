@@ -157,11 +157,6 @@ struct Graph {
     edges: HashMap<Coord, Vec<(Coord, usize)>>,
 }
 
-struct CompressNode {
-    last_intersection: Coord,
-    start_node: Coord,
-}
-
 fn compress(grid: &Grid, respect_slopes: bool) -> Graph {
     let mut edges: HashMap<Coord, Vec<(Coord, usize)>> = HashMap::new();
     let start = Coord { x: 1, y: 0 };
