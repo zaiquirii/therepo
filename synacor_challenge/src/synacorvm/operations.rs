@@ -184,3 +184,49 @@ impl Operation {
         Ok(op)
     }
 }
+
+pub fn print_op(addr: usize, memory: &[u16]) -> Result<usize> {
+    let op = Operation::from(memory)?;
+    print!("{:<4}: ", addr);
+    let alias = match op {
+        Operation::Halt => "halt",
+        Operation::Set { .. } => "set",
+        Operation::Push { .. } => "push",
+        Operation::Pop { .. } => "pop",
+        Operation::Eq { .. } => "eq",
+        Operation::Gt { .. } => "gt",
+        Operation::And { .. } => "and",
+        Operation::Or { .. } => "or",
+        Operation::Not { .. } => "not",
+        Operation::Rmem { .. } => "rmem",
+        Operation::Wmem { .. } => "wmem",
+        Operation::Jmp { .. } => "jmp",
+        Operation::Jt { .. } => "jt",
+        Operation::Jf { .. } => "jf",
+        Operation::Add { .. } => "add",
+        Operation::Mult { .. } => "mult",
+        Operation::Mod { .. } => "mod",
+        Operation::Call { .. } => "call",
+        Operation::Ret => "ret",
+        Operation::Out { .. } => "out",
+        Operation::In { .. } => "in",
+        Operation::Noop => "noop"
+    };
+    print!("{:<4}", alias);
+    for i in 1..op.instr_len() {
+        let o = Operand::from_raw(memory[i])?;
+        let s = match o {
+            Operand::Literal { value } => {
+                if let Operation::Out { .. } = op {
+                    format!(".{}", char::from_u32(value as u32).unwrap())
+                } else {
+                    format!("{}", value)
+                }
+            },
+            Operand::Reg { index } => format!("R[{}]", index)
+        };
+        print!("{:>6}", s);
+    }
+    println!();
+    Ok(op.instr_len())
+}

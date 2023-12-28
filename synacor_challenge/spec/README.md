@@ -36,7 +36,11 @@ Status:
 - 186f842951c0dcfe8838af1e7222b7d4
   - Got this one after implementing opcode In and starting the game
 - 2bf84e54b95ce97aefd9fc920451fc45
-  - 
+  - Got this in the maze
 - e09640936b3ef532b7b8e83ce8f125f4
+  - After using teleporter
 - 4873cf6b76f62ac7d5a53605b2535a0c
+  - At instruction_counter 6049 set R[0]=0 and R[1]=5, code on beach
+  - Don't forget to reverse engineer the algo from the byte code
 - d0c54d4ed7f943280ce3e19532dbb1a6
+  - Solve last puzzle. use mirror (don't forget to flip code at the end)

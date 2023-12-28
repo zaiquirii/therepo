@@ -1,8 +1,16 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::io;
 use crate::synacorvm::operations;
 use crate::synacorvm::operations::{Operand, Operation};
-use crate::synacorvm::storage::{Memory, Stack};
+
+struct State {
+    instruction_counter: usize,
+    running: bool,
+    registers: [u16; 8],
+    memory: Vec<u16>,
+    stack: Vec<u16>,
+    input: VecDeque<u16>,
+}
 
 pub struct VirtualMachine {
     instruction_counter: usize,
@@ -11,6 +19,8 @@ pub struct VirtualMachine {
     memory: Vec<u16>,
     stack: Vec<u16>,
     input: VecDeque<u16>,
+    states: Vec<State>,
+    commands: Vec<String>,
 }
 
 impl Default for VirtualMachine {
@@ -28,6 +38,8 @@ impl VirtualMachine {
             memory: vec![0; memory],
             stack: Vec::new(),
             input: VecDeque::new(),
+            states: Vec::new(),
+            commands: Vec::new(),
         }
     }
 
@@ -39,7 +51,13 @@ impl VirtualMachine {
             self.memory[i] = as_u16_le(&data[i * 2..i * 2 + 2]);
             i += 1;
         }
-        println!("Success");
+        println!("Success {}", self.memory[6147]);
+        let x = 16357;
+        let s = self.memory[x..(x+1000).min(self.memory.len())]
+            .iter()
+            .map(|x| char::from_u32(*x as u32).unwrap())
+            .collect::<String>();
+        println!("DATA AT: {} : {}", x, s);
     }
 
     pub fn run(&mut self) -> operations::Result<()> {
@@ -52,14 +70,21 @@ impl VirtualMachine {
     }
 
     pub fn step(&mut self) -> operations::Result<()> {
-        // Load operation
-        // Execute operation
         let mut jumped = false;
         let op = Operation::from(&self.memory[self.instruction_counter..])?;
+        // Used to escape deadlock in challenge binary
+        if self.instruction_counter == 6072 {
+            self.registers[0] = 0;
+            self.registers[1] = 5;
+        }
         match &op {
             Operation::Halt => {
-                println!("Shutting down");
-                self.running = false
+                if !self.pop_state() {
+                    self.push_state();
+                    println!("Shutting down");
+                    self.running = false;
+                }
+                jumped = true;
             }
             Operation::Set { dst, src } => {
                 self.set_register(dst, self.value_of(src))
@@ -203,8 +228,77 @@ impl VirtualMachine {
 
         let mut buffer = String::new();
         io::stdin().read_line(&mut buffer).expect("Could not read stdin");
+        if buffer != "commands\n" {
+            self.commands.push(buffer.clone());
+        }
+
+        match buffer.as_str() {
+            "save\n" => {
+                self.push_state();
+                buffer = "look\n".into();
+            }
+            "load\n" => {
+                self.pop_state();
+                buffer = "look\n".into();
+            }
+            "commands\n" => {
+                println!("START COMMANDS");
+                for s in &self.commands {
+                    print!("{}", s);
+                }
+                println!("END COMMANDS");
+            }
+            "reg8\n" => {
+                self.registers[7] = 25734;
+                println!("Buffer set");
+            }
+            e => {}
+        }
         buffer.bytes().for_each(|b| self.input.push_back(b as u16));
         self.input.pop_front().expect("Input should not be empty")
+    }
+
+    fn push_state(&mut self) {
+        let state = State {
+            instruction_counter: self.instruction_counter,
+            running: self.running,
+            registers: self.registers.clone(),
+            memory: self.memory.clone(),
+            stack: self.stack.clone(),
+            input: self.input.clone(),
+        };
+        self.states.push(state);
+        println!("State saved: {}", self.states.len());
+    }
+
+    fn pop_state(&mut self) -> bool {
+        match self.states.pop() {
+            None => {
+                println!("No saved states to revert to");
+                false
+            }
+            Some(s) => {
+                self.instruction_counter = s.instruction_counter;
+                self.running = s.running;
+                self.registers = s.registers;
+                self.memory = s.memory;
+                self.stack = s.stack;
+                self.input = s.input;
+                println!("loaded states: states left : {}", self.states.len());
+                true
+            }
+        }
+    }
+
+    pub fn dump_instructions(&self, start: usize) {
+        let mut i = start;
+        while i < self.memory.len() {
+            if let Ok(up) = operations::print_op(i, &self.memory[i..]) {
+                i += up
+            } else {
+                i += 1
+            }
+        }
     }
 }
 
