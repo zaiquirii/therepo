@@ -1,0 +1,3 @@
+send {"method":"isPrime","number":0}
+read
+send bleh

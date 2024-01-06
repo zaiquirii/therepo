@@ -1,0 +1,22 @@
+# fly.toml app configuration file generated for protohackers-zaiquiri on 2024-01-05T15:22:33+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "protohackers-zaiquiri"
+primary_region = "lhr"
+
+[[services]]
+  internal_port = 14293
+  protocol = "tcp"
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 14293
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024

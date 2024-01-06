@@ -1,0 +1,23 @@
+[package]
+name = "protohackers"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "protohackers"
+path = "src/main.rs"
+
+[[bin]]
+name = "test-runner"
+path = "src/test_runner.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.35.1", features = ["full"] }
+tokio-stream = { version = "0.1.14", features = ["full"] }
+serde = { version = "1.0.194", features = ["derive"] }
+serde_json = "1.0.111"
+anyhow = "1.0.79"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"

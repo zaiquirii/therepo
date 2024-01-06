@@ -1,0 +1,7 @@
+/target
+Dockerfile
+fly.toml
+.dockerignore
+
+/src/test_runner.rs
+/src/test_inputs
