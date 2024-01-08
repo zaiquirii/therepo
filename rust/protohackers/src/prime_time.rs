@@ -1,4 +1,4 @@
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, BufStream};
+use tokio::io::{AsyncBufReadExt,AsyncWriteExt, BufStream};
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
@@ -17,7 +17,7 @@ struct Response {
 pub async fn run() {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:14293").await.unwrap();
     loop {
-        let (mut socket, _) = listener.accept().await.unwrap();
+        let (socket, _) = listener.accept().await.unwrap();
         println!("Received new connection");
 
         tokio::spawn(async move {

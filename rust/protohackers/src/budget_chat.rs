@@ -125,19 +125,17 @@ struct UserInfo {
 struct ChatRoom {
     user_info: Mutex<UserInfo>,
     send: Send,
-    recv: Recv,
 }
 
 impl ChatRoom {
     fn new() -> Self {
-        let (send, recv) = tokio::sync::broadcast::channel(16);
+        let (send, _) = tokio::sync::broadcast::channel(16);
         Self {
             user_info: Mutex::new(UserInfo {
                 next_id: 0,
                 users: HashMap::new(),
             }),
             send,
-            recv,
         }
     }
 

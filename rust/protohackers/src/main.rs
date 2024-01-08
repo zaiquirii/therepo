@@ -3,6 +3,7 @@ mod means_to_end;
 mod budget_chat;
 mod udpdb;
 mod mob_in_the_middle;
+mod speed_daemon;
 
 use std::env;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -20,6 +21,7 @@ async fn main() {
         "budget-chat" => budget_chat::run(addr).await.unwrap(),
         "udpdb" => udpdb::run(addr).await.unwrap(),
         "mob-in-the-middle" => mob_in_the_middle::run(addr).await.unwrap(),
+        "speed-daemon" => speed_daemon::run(addr).await.unwrap(),
         _ => println!("unsupported command"),
     }
 }

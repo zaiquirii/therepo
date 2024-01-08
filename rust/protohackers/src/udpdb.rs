@@ -49,5 +49,3 @@ impl Cmd {
         return Cmd::Retrieve { key: txt.into() };
     }
 }
-
-struct UdpDb {}

@@ -4,7 +4,7 @@ use tokio::net::{TcpListener, TcpSocket, TcpStream};
 use anyhow::Result;
 
 pub async fn run<A: tokio::net::ToSocketAddrs>(addr: A) -> Result<()> {
-    let mut listener = TcpListener::bind(addr).await?;
+    let listener = TcpListener::bind(addr).await?;
     tracing::info!("listening for connections");
     loop {
         let (socket, socket_addr) = listener.accept().await?;
@@ -30,7 +30,7 @@ async fn proxy_connection(stream: TcpStream) -> Result<()> {
     let mut server_buf = Vec::new();
     loop {
         tokio::select! {
-            n = client_stream.read_until(b'\n', &mut client_buf) => {
+            _ = client_stream.read_until(b'\n', &mut client_buf) => {
                 if client_buf.is_empty() {
                     break;
                 }
@@ -42,7 +42,7 @@ async fn proxy_connection(stream: TcpStream) -> Result<()> {
                 server_stream.flush().await?;
                 client_buf.clear();
             }
-            n = server_stream.read_until(b'\n', &mut server_buf) => {
+            _ = server_stream.read_until(b'\n', &mut server_buf) => {
                 if server_buf.is_empty() {
                     break;
                 }
