@@ -1,5 +1,5 @@
 use crate::hindsight::FrameId;
-use crate::hindsight::ring_buffer::FrameCache;
+use crate::hindsight::frame_cache::FrameCache;
 
 #[derive(Default)]
 struct FrameInput<TInput> {

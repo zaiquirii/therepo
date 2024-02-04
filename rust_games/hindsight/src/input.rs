@@ -1,11 +1,11 @@
 use macroquad::input::{is_key_down, KeyCode};
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct PlayerInput {
-    left: bool,
-    right: bool,
-    jump: bool,
-    shoot: bool,
+    pub left: bool,
+    pub right: bool,
+    pub jump: bool,
+    pub shoot: bool,
 }
 
 impl PlayerInput {

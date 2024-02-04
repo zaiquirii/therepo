@@ -1,10 +1,12 @@
 mod input_buffer;
-mod ring_buffer;
+mod frame_cache;
 mod session;
 
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
+use macroquad::telemetry::Frame;
 
+pub use frame_cache::FrameCache;
 pub use session::Session;
 use crate::input::PlayerInput;
 
@@ -53,4 +55,10 @@ pub enum Error {
 type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Copy, Clone, PartialEq, Default, Debug)]
-struct FrameId(u32);
+pub struct FrameId(u32);
+
+impl FrameId {
+    pub fn next(&self) -> FrameId {
+        FrameId(self.0 + 1)
+    }
+}

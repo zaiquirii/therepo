@@ -9,3 +9,4 @@ edition = "2021"
 macroquad = "0.4.4"
 anyhow = "1.0.79"
 thiserror = "1.0.56"
+glm = { package = "nalgebra-glm", version = "0.18.0" }

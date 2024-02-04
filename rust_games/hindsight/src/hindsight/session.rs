@@ -17,13 +17,14 @@ pub struct Session<PlayerInput: Default + Clone> {
     state: SessionState,
     input_buffers: Vec<InputBuffer<PlayerInput>>,
     player_count: PlayerCount,
+    max_rollback: usize
 }
 
 impl<PlayerInput: Default + Clone> Session<PlayerInput> {
-    pub fn new(player_count: PlayerCount) -> Self {
+    pub fn new(player_count: PlayerCount, max_rollback: usize) -> Self {
         let mut input_buffers = Vec::new();
         for _ in 0..player_count as u8 {
-            input_buffers.push(InputBuffer::new(MAX_ROLLBACK_FRAMES))
+            input_buffers.push(InputBuffer::new(max_rollback))
         }
         Self {
             current_frame: FrameId(0),
@@ -32,6 +33,7 @@ impl<PlayerInput: Default + Clone> Session<PlayerInput> {
             },
             input_buffers,
             player_count,
+            max_rollback,
         }
     }
 
@@ -56,7 +58,7 @@ impl<PlayerInput: Default + Clone> Session<PlayerInput> {
     }
 
     pub fn synchronize_input(&mut self, out_inputs: &mut [PlayerInput]) -> Result<(), SyncInputError> {
-        println!("synchronizing input for frame: {:?}", self.current_frame);
+        // println!("synchronizing input for frame: {:?}", self.current_frame);
         for i in 0..self.player_count as usize {
             match self.input_buffers[i].get_frame_input(self.current_frame) {
                 None => return Err(SyncInputError::LocalInputMissing(PlayerId::from(i as u8))),
@@ -68,14 +70,30 @@ impl<PlayerInput: Default + Clone> Session<PlayerInput> {
         Ok(())
     }
 
+    pub fn synchronize(&mut self) -> Option<Rollback> {
+        let frames = self.max_rollback as u32;
+        if self.current_frame.0 < frames{
+            return None;
+        }
+
+        self.current_frame.0 -= frames;
+        Some(Rollback {
+            target_frame: self.current_frame,
+            sim_frames: frames as u8,
+        })
+    }
+
     pub fn frame_finished(&mut self) {
         self.current_frame.0 += 1
+    }
+    pub fn current_frame(&self) -> FrameId {
+        self.current_frame
     }
 }
 
 pub struct Rollback {
-    target_frame: FrameId,
-    sim_frames: u8,
+    pub target_frame: FrameId,
+    pub sim_frames: u8,
 }
 
 #[derive(thiserror::Error, Debug)]
