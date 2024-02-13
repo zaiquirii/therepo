@@ -1,12 +1,8 @@
-use macroquad::color::{BLACK, RED, WHITE};
-use macroquad::input::{is_key_pressed, KeyCode, mouse_position, mouse_position_local};
+use macroquad::color::{BLACK};
+use macroquad::input::{is_key_pressed, KeyCode, mouse_position};
 use macroquad::math::{Rect, Vec2};
 use macroquad::prelude::{next_frame, request_new_screen_size, screen_height, screen_width};
-use macroquad::shapes::{draw_rectangle_ex, DrawRectangleParams};
 use macroquad::time::get_frame_time;
-use macroquad::ui;
-use macroquad::ui::{root_ui, Skin};
-use macroquad::ui::widgets::Window;
 use macroquad::window::clear_background;
 use crate::simulation::Simulation;
 use crate::time::FixedTimeLoop;

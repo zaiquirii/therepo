@@ -1,5 +1,4 @@
 use macroquad::hash;
-use macroquad::input::KeyCode::P;
 use macroquad::math::{Rect, Vec2};
 use macroquad::prelude::*;
 use macroquad::rand::gen_range;
@@ -8,8 +7,6 @@ use macroquad::ui::root_ui;
 use macroquad::ui::widgets::{TreeNode, Window};
 use crate::grid::Grid;
 use crate::time::MovingAverage;
-
-const SPECIES_COUNT: u8 = 1;
 
 #[derive(Clone)]
 pub struct SpeciesConfig {
@@ -63,7 +60,7 @@ impl Simulation {
             config,
             atoms: Vec::new(),
             grid: Grid::new(0, bounds, UVec2::new(10, 10)),
-            avg_fps: MovingAverage::new(150),
+            avg_fps: MovingAverage::new(100),
         };
         s.reconcile_config(true);
         s
@@ -80,7 +77,7 @@ impl Simulation {
             self.atoms = generate_atoms(self.bounds,
                                         self.config.num_species,
                                         self.config.atoms_per_species);
-            let mut configs = &mut self.config.species_config;
+            let configs = &mut self.config.species_config;
             if configs.len() > num_species {
                 configs.truncate(num_species);
             }
@@ -91,7 +88,7 @@ impl Simulation {
                         attraction: vec![0.0; num_species],
                     })
                 } else {
-                    let mut attraction = &mut configs[i].attraction;
+                    let attraction = &mut configs[i].attraction;
                     attraction.truncate(num_species);
 
                     if attraction.len() < num_species {
@@ -109,24 +106,46 @@ impl Simulation {
     }
 
     pub fn tick(&mut self) {
+        self.grid.reset();
+        for a_i in 0..self.atoms.len() {
+            self.grid.insert(self.atoms[a_i].pos, a_i);
+        }
+        self.grid.finalize();
+
         for a_i in 0..self.atoms.len() {
             let a = &self.atoms[a_i];
             let a_pos = a.pos;
             let config = &self.config.species_config[a.species as usize];
             let forces = &config.attraction;
             let mut acc_force = Vec2::ZERO;
-            for b_i in 0..self.atoms.len() {
-                if a_i == b_i {
-                    continue;
-                }
-                let b = &self.atoms[b_i];
-                let delta = a_pos - b.pos;
-                let distance = delta.length();
-                if distance > 0.0 && distance < config.range {
-                    let force = forces[b.species as usize] / distance;
-                    acc_force += force * delta;
+
+            for cell in self.grid.scan(a_pos, config.range) {
+                for (_, b_i) in cell {
+                    if a_i == *b_i {
+                        continue;
+                    }
+                    let b = &self.atoms[*b_i];
+                    let delta = a_pos - b.pos;
+                    let distance = delta.length();
+                    if distance > 0.0 && distance < config.range {
+                        let force = forces[b.species as usize] / distance;
+                        acc_force += force * delta;
+                    }
                 }
             }
+
+            // for b_i in 0..self.atoms.len() {
+            //     if a_i == b_i {
+            //         continue;
+            //     }
+            //     let b = &self.atoms[b_i];
+            //     let delta = a_pos - b.pos;
+            //     let distance = delta.length();
+            //     if distance > 0.0 && distance < config.range {
+            //         let force = forces[b.species as usize] / distance;
+            //         acc_force += force * delta;
+            //     }
+            // }
             let a = &mut self.atoms[a_i];
             // println!("{} {} {}", a_i, a.vel, acc_force);
             a.vel = (a.vel + acc_force * self.config.force_const) * self.config.viscosity;
@@ -149,13 +168,6 @@ impl Simulation {
                 a.pos.y = self.bounds.bottom();
             }
         }
-
-        self.grid.reset();
-        for a_i in 0..self.atoms.len() {
-            self.grid.insert(self.atoms[a_i].pos, a_i);
-        }
-        self.grid.finalize();
-
     }
 
     pub fn render(&self) {

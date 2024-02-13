@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use std::thread::current;
 use macroquad::math::{Rect, UVec2, Vec2};
 
 type Bucket = usize;
@@ -7,7 +6,6 @@ type Bucket = usize;
 pub struct Grid<T> {
     elements: Vec<(Bucket, T)>,
     offsets: Vec<usize>,
-    bounds: Rect,
     pub dimens: UVec2,
     pub origin: Vec2,
     pub cell_size: Vec2,
@@ -20,7 +18,6 @@ impl<T: Debug> Grid<T> {
             finalized: false,
             elements: Vec::with_capacity(capacity),
             offsets: vec![0; (dimens.y * dimens.x + 1) as usize],
-            bounds,
             dimens,
             origin: bounds.point(),
             cell_size: Vec2::new(
@@ -54,8 +51,19 @@ impl<T: Debug> Grid<T> {
                 next_offset += 1;
             }
         }
-        let len = self.offsets.len();
-        self.offsets[len - 1] = self.elements.len();
+
+        while next_offset < self.offsets.len() {
+            self.offsets[next_offset] = self.elements.len() - 1;
+            next_offset += 1;
+        }
+        // let len = self.offsets.len();
+        // self.offsets[len - 1] = self.elements.len();
+
+        for i in 0..self.offsets.len() - 1 {
+            if self.offsets[i] > self.offsets[i + 1] {
+                println!("NOT SORTED")
+            }
+        }
     }
 
     pub fn scan(&self, pos: Vec2, range: f32) -> GridIter<'_, T> {
@@ -64,8 +72,6 @@ impl<T: Debug> Grid<T> {
         let end_x = ((pos.x + range) / self.cell_size.x).clamp(0.0, (self.dimens.x - 1) as f32) as usize;
         let end_y = ((pos.y + range) / self.cell_size.y).clamp(0.0, (self.dimens.y - 1) as f32) as usize;
 
-        let bucket = start_x + start_y * self.dimens.x as usize;
-        let s = self.offsets[bucket];
         let g = GridIter {
             grid: self,
             start: (start_x, start_y),
