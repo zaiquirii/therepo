@@ -36,6 +36,7 @@ pub struct Simulation {
     bounds: Rect,
     config: SimulationConfig,
     grid: Grid<usize>,
+    grids: Vec<Grid<usize>>,
     avg_fps: MovingAverage,
 }
 
@@ -60,6 +61,7 @@ impl Simulation {
             config,
             atoms: Vec::new(),
             grid: Grid::new(0, bounds, UVec2::new(10, 10)),
+            grids: Vec::with_capacity(8),
             avg_fps: MovingAverage::new(100),
         };
         s.reconcile_config(true);
@@ -102,54 +104,75 @@ impl Simulation {
             bounds.w += 4.0;
             bounds.h += 4.0;
             self.grid = Grid::new(atom_count, bounds, UVec2::new(10, 10));
+            for i in 0..self.config.num_species as usize {
+                let g = Grid::new(self.config.atoms_per_species, bounds, UVec2::new(10, 10));
+                if self.grids.len() <= i {
+                    self.grids.push(g);
+                } else {
+                    self.grids[i] = g;
+                }
+            }
         }
     }
 
     pub fn tick(&mut self) {
+        let num_species = self.config.num_species as usize;
         self.grid.reset();
         for a_i in 0..self.atoms.len() {
             self.grid.insert(self.atoms[a_i].pos, a_i);
         }
         self.grid.finalize();
 
-        for a_i in 0..self.atoms.len() {
-            let a = &self.atoms[a_i];
-            let a_pos = a.pos;
-            let config = &self.config.species_config[a.species as usize];
-            let forces = &config.attraction;
-            let mut acc_force = Vec2::ZERO;
+        let mut remaining = self.atoms.as_mut_slice();
+        let mut species: [&mut [Atom]; 8] = Default::default();
+        for s in 0..(num_species - 1) as usize {
+            let (head, tail) = remaining.split_at_mut(self.config.atoms_per_species);
+            species[s] = head;
+            remaining = tail;
+        }
+        species[num_species - 1] = remaining;
 
-            for cell in self.grid.scan(a_pos, config.range) {
-                for (_, b_i) in cell {
-                    if a_i == *b_i {
+        for s in 0..num_species {
+            let grid = &mut self.grids[s];
+            grid.reset();
+            for (index, atom) in species[s].iter().enumerate() {
+                grid.insert(atom.pos, index);
+            }
+            grid.finalize();
+        }
+
+        for a_species_i in 0..num_species {
+            let config = &self.config.species_config[a_species_i];
+            let forces = &config.attraction;
+            let range = config.range;
+
+            for a_i in 0..self.config.atoms_per_species {
+                let a_pos = species[a_species_i][a_i].pos;
+                let mut acc_force = Vec2::ZERO;
+
+                for b_species_i in 0..num_species {
+                    let b_force = forces[b_species_i];
+                    if b_force == 0.0 {
                         continue;
                     }
-                    let b = &self.atoms[*b_i];
-                    let delta = a_pos - b.pos;
-                    let distance = delta.length();
-                    if distance > 0.0 && distance < config.range {
-                        let force = forces[b.species as usize] / distance;
-                        acc_force += force * delta;
+
+                    let b_species = &species[b_species_i];
+                    for cell in self.grids[b_species_i].scan(a_pos, range) {
+                        for (_, b_i) in cell {
+                            let delta = a_pos - b_species[*b_i].pos;
+                            let distance = delta.length();
+                            if distance > 0.0 && distance < config.range {
+                                let force = b_force / distance;
+                                acc_force += force * delta;
+                            }
+                        }
                     }
                 }
-            }
 
-            // for b_i in 0..self.atoms.len() {
-            //     if a_i == b_i {
-            //         continue;
-            //     }
-            //     let b = &self.atoms[b_i];
-            //     let delta = a_pos - b.pos;
-            //     let distance = delta.length();
-            //     if distance > 0.0 && distance < config.range {
-            //         let force = forces[b.species as usize] / distance;
-            //         acc_force += force * delta;
-            //     }
-            // }
-            let a = &mut self.atoms[a_i];
-            // println!("{} {} {}", a_i, a.vel, acc_force);
-            a.vel = (a.vel + acc_force * self.config.force_const) * self.config.viscosity;
-            a.vel.y += self.config.gravity;
+                let a = &mut species[a_species_i][a_i];
+                a.vel = (a.vel + acc_force * self.config.force_const) * self.config.viscosity;
+                a.vel.y += self.config.gravity;
+            }
         }
 
         for a in &mut self.atoms {
@@ -175,7 +198,6 @@ impl Simulation {
         for a in &self.atoms {
             draw_circle(a.pos.x, a.pos.y, 3.0, colors[a.species as usize])
         }
-
     }
 
     pub fn render_grid(&self, select_point: Option<Vec2>) {
@@ -189,8 +211,8 @@ impl Simulation {
         }
 
         if let Some(p) = select_point {
-            let x_f = (p.x / cell.x).floor() * cell.x;
-            let y_f = (p.y / cell.y).floor() * cell.y;
+            let x_f = (p.x / cell.x).floor() * cell.x + self.grid.origin.x;
+            let y_f = (p.y / cell.y).floor() * cell.y + self.grid.origin.y;
             draw_rectangle_lines(x_f, y_f, cell.x, cell.y, 4.0, GREEN);
 
             for cell in self.grid.scan(p, 80.0) {

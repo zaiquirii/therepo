@@ -19,6 +19,7 @@ async fn main() {
     let mut simulation = Simulation::new(Rect::new(0.0, 0.0, screen_width(), screen_height()));
     let mut show_ui = false;
     let mut paused = false;
+    let mut show_grid = false;
 
     let mut timer = FixedTimeLoop::new();
 
@@ -29,6 +30,9 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::M) {
             show_ui = !show_ui;
+        }
+        if is_key_pressed(KeyCode::G) {
+            show_grid = !show_grid;
         }
         if is_key_pressed(KeyCode::Space) {
             paused = !paused;
@@ -44,11 +48,13 @@ async fn main() {
 
         clear_background(BLACK);
         simulation.render();
-        let mouse_pos = mouse_position();
-        simulation.render_grid(Some(Vec2::new(
-            mouse_pos.0,
-            mouse_pos.1,
-        )));
+        if show_grid {
+            let mouse_pos = mouse_position();
+            simulation.render_grid(Some(Vec2::new(
+                mouse_pos.0,
+                mouse_pos.1,
+            )));
+        }
         if show_ui {
             simulation.render_ui();
         }
