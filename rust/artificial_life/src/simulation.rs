@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use macroquad::rand::gen_range;
 use macroquad::shapes::draw_circle;
 use macroquad::ui::root_ui;
-use macroquad::ui::widgets::{TreeNode, Window};
+use macroquad::ui::widgets::{Group, TreeNode, Window};
 use crate::grid::Grid;
 use crate::time::MovingAverage;
 
@@ -229,7 +229,9 @@ impl Simulation {
 
         let names = ["Yellow", "Red", "Green", "Blue", "Purple", "Orange", "Magenta", "Violet"];
 
-        Window::new(hash!(), Vec2::new(0.0, 0.0), Vec2::new(400.0, 400.0))
+        // Group::new(hash!(), Vec2::new(screen_width() - 400.0, 0.0))
+        Window::new(hash!(), Vec2::new(screen_width() - 400.0, 0.0), Vec2::new(400.0, screen_height()))
+            .movable(false)
             .label("Config")
             .ui(&mut root_ui(), |ui| {
                 self.avg_fps.update(get_fps());

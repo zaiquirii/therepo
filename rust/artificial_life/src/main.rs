@@ -3,7 +3,7 @@ use macroquad::input::{is_key_pressed, KeyCode, mouse_position};
 use macroquad::math::{Rect, Vec2};
 use macroquad::prelude::{next_frame, request_new_screen_size, screen_height, screen_width};
 use macroquad::time::get_frame_time;
-use macroquad::window::clear_background;
+use macroquad::window::{clear_background, Conf};
 use crate::simulation::Simulation;
 use crate::time::FixedTimeLoop;
 
@@ -11,13 +11,20 @@ mod simulation;
 mod time;
 mod grid;
 
-#[macroquad::main("artificial_life")]
-async fn main() {
-    request_new_screen_size(480.0 * 2.0, 360.0 * 2.0);
-    next_frame().await;
+const UI_WIDTH: f32 = 400.0;
 
-    let mut simulation = Simulation::new(Rect::new(0.0, 0.0, screen_width(), screen_height()));
-    let mut show_ui = false;
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Artificial Life".to_owned(),
+        window_width: 480 * 2 + UI_WIDTH as i32,
+        window_height: 360 * 2,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
+async fn main() {
+    let mut simulation = Simulation::new(Rect::new(0.0, 0.0, screen_width() - UI_WIDTH, screen_height()));
     let mut paused = false;
     let mut show_grid = false;
 
@@ -27,9 +34,6 @@ async fn main() {
     loop {
         if is_key_pressed(KeyCode::Escape) {
             break;
-        }
-        if is_key_pressed(KeyCode::M) {
-            show_ui = !show_ui;
         }
         if is_key_pressed(KeyCode::G) {
             show_grid = !show_grid;
@@ -55,9 +59,7 @@ async fn main() {
                 mouse_pos.1,
             )));
         }
-        if show_ui {
-            simulation.render_ui();
-        }
+        simulation.render_ui();
         next_frame().await;
     }
 }
