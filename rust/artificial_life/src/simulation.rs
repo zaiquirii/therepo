@@ -29,6 +29,8 @@ pub struct SimulationConfig {
     force_const: f32,
     num_species: u8,
     species_config: Vec<SpeciesConfig>,
+    randomize: bool,
+    frames_per_config: usize,
 }
 
 pub struct Simulation {
@@ -38,6 +40,7 @@ pub struct Simulation {
     grid: Grid<usize>,
     grids: Vec<Grid<usize>>,
     avg_fps: MovingAverage,
+    frames_since_rand: usize,
 }
 
 impl Simulation {
@@ -49,6 +52,8 @@ impl Simulation {
             viscosity: 0.5,
             gravity: 0.0,
             force_const: 1.0,
+            frames_per_config: 500,
+            randomize: false,
             species_config: vec![
                 SpeciesConfig {
                     range: 80.0,
@@ -63,6 +68,7 @@ impl Simulation {
             grid: Grid::new(0, bounds, UVec2::new(10, 10)),
             grids: Vec::with_capacity(8),
             avg_fps: MovingAverage::new(100),
+            frames_since_rand: 0,
         };
         s.reconcile_config(true);
         s
@@ -191,6 +197,12 @@ impl Simulation {
                 a.pos.y = self.bounds.bottom();
             }
         }
+
+        self.frames_since_rand += 1;
+        if self.config.randomize && self.frames_since_rand > self.config.frames_per_config {
+            self.frames_since_rand = 0;
+            self.randomize_config();
+        }
     }
 
     pub fn render(&self) {
@@ -224,9 +236,14 @@ impl Simulation {
         }
     }
 
-    pub fn render_ui(&mut self) {
-        root_ui().label(None, "TEST");
+    pub fn randomize_config(&mut self) {
+        let species_a = gen_range(0, self.config.num_species) as usize;
+        let species_b = gen_range(0, self.config.num_species) as usize;
+        let value = gen_range(-3.0, 3.0);
+        self.config.species_config[species_a].attraction[species_b] = value;
+    }
 
+    pub fn render_ui(&mut self) {
         let names = ["Yellow", "Red", "Green", "Blue", "Purple", "Orange", "Magenta", "Violet"];
 
         // Group::new(hash!(), Vec2::new(screen_width() - 400.0, 0.0))
@@ -236,30 +253,41 @@ impl Simulation {
             .ui(&mut root_ui(), |ui| {
                 self.avg_fps.update(get_fps());
                 ui.label(None, &*format!("FPS: {}", self.avg_fps.avg()));
+                ui.slider(hash!(), "Framerate", 0.0..120.0, &mut self.config.fps);
                 if ui.button(None, "Reset Particles") {
                     self.reconcile_config(true);
                 }
-                let mut num_species = Some(self.config.num_species as usize - 1);
-                ui.combo_box(hash!(), "Species Count", &["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"], &mut num_species);
-                if let Some(s) = num_species {
-                    let num = s as u8 + 1;
-                    if self.config.num_species != num {
-                        self.config.num_species = num;
-                        self.reconcile_config(false);
-                    }
-                }
-                let mut value = self.config.atoms_per_species as f32;
-                ui.slider(hash!(), "Framerate", 0.0..120.0, &mut self.config.fps);
-                ui.slider(hash!(), "Atoms per species", 1.0..2000.0, &mut value);
-                if value as usize != self.config.atoms_per_species {
-                    self.config.atoms_per_species = value as usize;
-                    self.reconcile_config(false);
-                }
-                ui.slider(hash!(), "Viscosity", 0.0..1.0, &mut self.config.viscosity);
-                ui.slider(hash!(), "Gravity", 0.0..4.0, &mut self.config.gravity);
-                ui.slider(hash!(), "Force Const", 0.0..10.0, &mut self.config.force_const);
-                ui.separator();
 
+                TreeNode::new(hash!(), "General Config")
+                    .init_unfolded()
+                    .ui(ui, |ui| {
+                        let mut num_species = Some(self.config.num_species as usize - 1);
+                        ui.combo_box(hash!(), "Species Count", &["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"], &mut num_species);
+                        if let Some(s) = num_species {
+                            let num = s as u8 + 1;
+                            if self.config.num_species != num {
+                                self.config.num_species = num;
+                                self.reconcile_config(false);
+                            }
+                        }
+                        let mut value = self.config.atoms_per_species as f32;
+                        ui.slider(hash!(), "Atoms per species", 1.0..2000.0, &mut value);
+                        if value as usize != self.config.atoms_per_species {
+                            self.config.atoms_per_species = value as usize;
+                            self.reconcile_config(false);
+                        }
+                        ui.slider(hash!(), "Viscosity", 0.0..1.0, &mut self.config.viscosity);
+                        ui.slider(hash!(), "Gravity", 0.0..4.0, &mut self.config.gravity);
+                        ui.slider(hash!(), "Force Const", 0.0..10.0, &mut self.config.force_const);
+                    });
+                TreeNode::new(hash!(), "Randomizer")
+                    .init_unfolded()
+                    .ui(ui, |ui| {
+                        ui.checkbox(hash!(), "Enable", &mut self.config.randomize);
+                        let mut value = self.config.frames_per_config as f32;
+                        ui.slider(hash!(), "Frame per randomize", 1.0..2000.0, &mut value);
+                        self.config.frames_per_config = value as usize;
+                    });
                 TreeNode::new(hash!(), "Species Config")
                     .init_unfolded()
                     .ui(ui, |ui| {
