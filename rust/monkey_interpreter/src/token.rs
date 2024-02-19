@@ -8,8 +8,16 @@ pub enum TokenType {
     Int,
 
     // Operators
+    Bang,
     Assign,
     Plus,
+    Minus,
+    Slash,
+    Asterisk,
+    Lt,
+    Gt,
+    Eq,
+    NotEq,
 
     // Delimiters
     Comma,
@@ -22,7 +30,12 @@ pub enum TokenType {
 
     // Keywords
     Function,
-    Let
+    Let,
+    If,
+    Else,
+    Return,
+    True,
+    False,
 }
 
 impl TokenType {
@@ -32,11 +45,17 @@ impl TokenType {
         match s.as_str() {
             "fn" => T::Function,
             "let" => T::Let,
+            "if" => T::If,
+            "else" => T::Else,
+            "return" => T::Return,
+            "true" => T::True,
+            "false" => T::False,
             _ => T::Identifier
         }
     }
 }
 
+#[derive(Debug)]
 pub struct Token<'a> {
     pub tok_type: TokenType,
     pub literal: &'a [char],

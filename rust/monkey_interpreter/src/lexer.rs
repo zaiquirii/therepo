@@ -13,6 +13,12 @@ impl RawMonkeyProgram {
     }
 }
 
+impl From<&str> for RawMonkeyProgram {
+    fn from(value: &str) -> Self {
+        RawMonkeyProgram::new(value)
+    }
+}
+
 pub struct Lexer<'a> {
     program: &'a RawMonkeyProgram,
     /// current position in input (points to current char)
@@ -42,8 +48,26 @@ impl<'a> Lexer<'a> {
         }
         use TokenType as T;
         let (t, len) = match self.program.input[self.position] {
-            '=' => (T::Assign, 1),
+            '=' => {
+                if self.program.input[self.position + 1] == '=' {
+                    (T::Eq, 2)
+                } else {
+                    (T::Assign, 1)
+                }
+            }
             '+' => (T::Plus, 1),
+            '-' => (T::Minus, 1),
+            '!' => {
+                if self.program.input[self.position + 1] == '=' {
+                    (T::NotEq, 2)
+                } else {
+                    (T::Bang, 1)
+                }
+            }
+            '/' => (T::Slash, 1),
+            '*' => (T::Asterisk, 1),
+            '<' => (T::Lt, 1),
+            '>' => (T::Gt, 1),
             ';' => (T::Semicolon, 1),
             ',' => (T::Comma, 1),
             '(' => (T::LParen, 1),
@@ -65,7 +89,6 @@ impl<'a> Lexer<'a> {
                     (T::Illegal, 1)
                 }
             }
-            _ => panic!("unsupported char {}", self.program.input[self.position])
         };
         let p = self.position;
         self.position += len;
@@ -141,7 +164,18 @@ let ten = 10;
 let add = fn(x, y) {
   x + y;
 };
+
 let result = add(five, ten);
+!-/*5;
+5 < 10 > 5;
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
+10 == 10;
+10 != 9;
 ";
 
         use TokenType as T;
@@ -181,6 +215,43 @@ let result = add(five, ten);
             (T::Comma, ","),
             (T::Identifier, "ten"),
             (T::RParen, ")"),
+            (T::Semicolon, ";"),
+            (T::Bang, "!"),
+            (T::Minus, "-"),
+            (T::Slash, "/"),
+            (T::Asterisk, "*"),
+            (T::Int, "5"),
+            (T::Semicolon, ";"),
+            (T::Int, "5"),
+            (T::Lt, "<"),
+            (T::Int, "10"),
+            (T::Gt, ">"),
+            (T::Int, "5"),
+            (T::Semicolon, ";"),
+            (T::If, "if"),
+            (T::LParen, "("),
+            (T::Int, "5"),
+            (T::Lt, "<"),
+            (T::Int, "10"),
+            (T::RParen, ")"),
+            (T::LBrace, "{"),
+            (T::Return, "return"),
+            (T::True, "true"),
+            (T::Semicolon, ";"),
+            (T::RBrace, "}"),
+            (T::Else, "else"),
+            (T::LBrace, "{"),
+            (T::Return, "return"),
+            (T::False, "false"),
+            (T::Semicolon, ";"),
+            (T::RBrace, "}"),
+            (T::Int, "10"),
+            (T::Eq, "=="),
+            (T::Int, "10"),
+            (T::Semicolon, ";"),
+            (T::Int, "10"),
+            (T::NotEq, "!="),
+            (T::Int, "9"),
             (T::Semicolon, ";"),
             (T::Eof, ""),
         ];
