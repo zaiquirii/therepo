@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
     Illegal,
     Eof,
@@ -55,14 +55,30 @@ impl TokenType {
     }
 }
 
-#[derive(Debug)]
-pub struct Token<'a> {
-    pub tok_type: TokenType,
-    pub literal: &'a [char],
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Slice {
+    pub start: usize,
+    pub len: usize,
 }
 
-impl<'a> Token<'a> {
-    pub fn new(t: TokenType, literal: &'a [char]) -> Self {
+impl Slice {
+    pub fn new(start: usize, len: usize) -> Self {
+        Self { start, len }
+    }
+
+    pub fn as_slice<'a, T>(&self, data: &'a [T]) -> &'a [T] {
+        &data[self.start..self.start + self.len]
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Token {
+    pub tok_type: TokenType,
+    pub literal: Slice,
+}
+
+impl Token {
+    pub fn new(t: TokenType, literal: Slice) -> Self {
         Self {
             tok_type: t,
             literal,

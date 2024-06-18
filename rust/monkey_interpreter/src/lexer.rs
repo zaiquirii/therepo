@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::token::{TokenType, Token};
+use crate::token::{TokenType, Token, Slice};
 
 pub struct RawMonkeyProgram {
     input: Vec<char>,
@@ -11,7 +11,20 @@ impl RawMonkeyProgram {
             input: input.chars().collect()
         }
     }
+
+    pub fn slice(&self, slice: Slice) -> &[char] {
+        slice.as_slice(self.input.as_slice())
+    }
+
+    pub fn substring(&self, slice: Slice) -> String {
+        String::from_iter(self.slice(slice).iter())
+    }
+
+    pub fn token_substring(&self, token: Token) -> String {
+        String::from_iter(self.slice(token.literal).iter())
+    }
 }
+
 
 impl From<&str> for RawMonkeyProgram {
     fn from(value: &str) -> Self {
@@ -20,14 +33,13 @@ impl From<&str> for RawMonkeyProgram {
 }
 
 pub struct Lexer<'a> {
-    program: &'a RawMonkeyProgram,
+     program: &'a RawMonkeyProgram,
     /// current position in input (points to current char)
     position: usize,
     /// current reading position in input (after current char)
     read_position: usize,
     /// current char under examination
     current_ch: char,
-    _a: PhantomData<Token<'a>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -37,8 +49,11 @@ impl<'a> Lexer<'a> {
             position: 0,
             read_position: 0,
             current_ch: '\0',
-            _a: PhantomData,
         }
+    }
+
+    pub fn program(&self) -> &'a RawMonkeyProgram {
+        self.program
     }
 
     pub fn next_token(&mut self) -> Option<Token> {
@@ -92,7 +107,7 @@ impl<'a> Lexer<'a> {
         };
         let p = self.position;
         self.position += len;
-        Some(Token::new(t, &self.program.input[p..p + len]))
+        Some(Token::new(t, Slice::new(p, len)))
     }
 
     fn eat_whitespace(&mut self) {
@@ -148,7 +163,8 @@ mod test {
         for (i, expected) in tests.iter().enumerate() {
             if let Some(t) = l.next_token() {
                 assert_eq!(t.tok_type, expected.0, "test {} {:?}", i, expected);
-                assert_eq!(t.literal, expected.1.chars().collect::<Vec<_>>(), "test {} {:?}", i, expected);
+                let t_data = t.literal.as_slice(p.input.as_slice());
+                assert_eq!(t_data, expected.1.chars().collect::<Vec<_>>(), "test {} {:?}", i, expected);
             } else if expected.0 == TokenType::Eof {
                 // Do nothing
             } else {
@@ -261,7 +277,8 @@ if (5 < 10) {
         for (i, expected) in tests.iter().enumerate() {
             if let Some(t) = l.next_token() {
                 assert_eq!(t.tok_type, expected.0, "test {} {:?}", i, expected);
-                assert_eq!(t.literal, expected.1.chars().collect::<Vec<_>>(), "test {} {:?}", i, expected);
+                let t_data = t.literal.as_slice(p.input.as_slice());
+                assert_eq!(t_data, expected.1.chars().collect::<Vec<_>>(), "test {} {:?}", i, expected);
             } else if expected.0 == TokenType::Eof {
                 // Do nothing
             } else {
